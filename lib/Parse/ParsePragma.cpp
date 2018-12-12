@@ -258,6 +258,12 @@ struct PragmaAttributeHandler : public PragmaHandler {
   ParsedAttributes AttributesForPragmaAttribute;
 };
 
+struct PragmaDreplHandler : public PragmaHandler {
+  PragmaDreplHandler() : PragmaHandler("drepl") {}
+  void HandlePragma(Preprocessor &PP, PragmaIntroducerKind Introducer,
+                    Token &FirstToken) override;
+};
+
 }  // end namespace
 
 void Parser::initializePragmaHandlers() {
@@ -378,6 +384,10 @@ void Parser::initializePragmaHandlers() {
   AttributePragmaHandler =
       llvm::make_unique<PragmaAttributeHandler>(AttrFactory);
   PP.AddPragmaHandler("clang", AttributePragmaHandler.get());
+
+  DreplHandler = llvm::make_unique<PragmaDreplHandler>();
+  PP.AddPragmaHandler(DreplHandler.get());
+
 }
 
 void Parser::resetPragmaHandlers() {
@@ -483,6 +493,9 @@ void Parser::resetPragmaHandlers() {
 
   PP.RemovePragmaHandler("clang", AttributePragmaHandler.get());
   AttributePragmaHandler.reset();
+
+  PP.RemovePragmaHandler(DreplHandler.get());
+  DreplHandler.reset();
 }
 
 /// Handle the annotation token produced for #pragma unused(...)
@@ -3223,4 +3236,44 @@ void PragmaAttributeHandler::HandlePragma(Preprocessor &PP,
   TokenArray[0].setAnnotationValue(static_cast<void *>(Info));
   PP.EnterTokenStream(std::move(TokenArray), 1,
                       /*DisableMacroExpansion=*/false);
+}
+
+void
+PragmaDreplHandler::HandlePragma(Preprocessor &PP,
+                                  PragmaIntroducerKind Introducer,
+                                  Token &FirstTok) {
+  SmallVector<Token, 16> Pragma;
+  Token Tok;
+  Tok.startToken();
+  Tok.setKind(tok::annot_pragma_drepl);
+  Tok.setLocation(FirstTok.getLocation());
+
+  PP.Lex(Tok);
+  while (Tok.isNot(tok::eod) && Tok.isNot(tok::eof)) {
+    Pragma.push_back(Tok);
+    PP.Lex(Tok);
+  }
+
+  auto Toks = llvm::make_unique<Token[]>(Pragma.size());
+  std::copy(Pragma.begin(), Pragma.end(), Toks.get());
+  PP.EnterTokenStream(std::move(Toks), Pragma.size(),
+                      /*DisableMacroExpansion=*/false);
+}
+
+void Parser::HandlePragmaDrepl() {
+  assert(Tok.is(tok::annot_pragma_drepl));
+
+//  PP.EnterTokenStream(Toks, false);
+  ConsumeAnnotationToken();
+  ExprResult r = ParseExpression();
+  if (Tok.isNot(tok::eof)) {
+      Diag(Tok.getLocation(), diag::warn_pragma_extra_tokens_at_eol) << "drepl";
+      while (Tok.isNot(tok::eof))
+        ConsumeAnyToken();
+  }
+
+  ConsumeToken(); // Consume the constant expression eof terminator.
+
+//  if (r.isInvalid() || Actions.CheckLoopHintExpr(r.get(), Toks[0].getLocation()))
+//    return;
 }

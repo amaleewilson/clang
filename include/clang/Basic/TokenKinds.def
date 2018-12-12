@@ -823,6 +823,9 @@ ANNOTATION(module_include)
 ANNOTATION(module_begin)
 ANNOTATION(module_end)
 
+// Annotation for drepl pragma directives
+ANNOTATION(pragma_drepl)
+
 #undef ANNOTATION
 #undef TESTING_KEYWORD
 #undef OBJC_AT_KEYWORD

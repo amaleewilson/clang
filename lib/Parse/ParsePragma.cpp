@@ -3244,11 +3244,12 @@ PragmaDreplHandler::HandlePragma(Preprocessor &PP,
                                   Token &FirstTok) {
   SmallVector<Token, 16> Pragma;
   Token Tok;
+  PP.Lex(Tok);
+
   Tok.startToken();
   Tok.setKind(tok::annot_pragma_drepl);
   Tok.setLocation(FirstTok.getLocation());
 
-  PP.Lex(Tok);
   while (Tok.isNot(tok::eod) && Tok.isNot(tok::eof)) {
     Pragma.push_back(Tok);
     PP.Lex(Tok);
@@ -3262,17 +3263,23 @@ PragmaDreplHandler::HandlePragma(Preprocessor &PP,
 
 void Parser::HandlePragmaDrepl() {
   assert(Tok.is(tok::annot_pragma_drepl));
+  printf("Parser::HandlePragmaDrepl\n");
 
 //  PP.EnterTokenStream(Toks, false);
   ConsumeAnnotationToken();
+//  printf("after consume annotation token\n");
   ExprResult r = ParseExpression();
-  if (Tok.isNot(tok::eof)) {
+/*
+  llvm::errs() << "---" << Tok.getName() << "\n";
+  if (Tok.isNot(tok::eof) || Tok.isNot(tok::eod)) {
       Diag(Tok.getLocation(), diag::warn_pragma_extra_tokens_at_eol) << "drepl";
-      while (Tok.isNot(tok::eof))
+      while (Tok.isNot(tok::eof) || Tok.isNot(tok::eod))
         ConsumeAnyToken();
   }
 
-  ConsumeToken(); // Consume the constant expression eof terminator.
+  ConsumeToken();
+*/
+//  printf("so far so good\n");
 
 //  if (r.isInvalid() || Actions.CheckLoopHintExpr(r.get(), Toks[0].getLocation()))
 //    return;

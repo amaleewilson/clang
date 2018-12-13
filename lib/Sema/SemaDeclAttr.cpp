@@ -6080,6 +6080,11 @@ static void handleDestroyAttr(Sema &S, Decl *D, const ParsedAttr &A) {
     handleSimpleAttributeWithExclusions<NoDestroyAttr, AlwaysDestroyAttr>(S, D, A);
 }
 
+static void handleDreplAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
+  // TODO
+  printf("handleDreplAttr\n");
+}
+
 //===----------------------------------------------------------------------===//
 // Top Level Sema Entry Points
 //===----------------------------------------------------------------------===//
@@ -6122,6 +6127,9 @@ static void ProcessDeclAttribute(Sema &S, Scope *scope, Decl *D,
     }
     S.Diag(AL.getLoc(), diag::err_stmt_attribute_invalid_on_decl)
         << AL << D->getLocation();
+    break;
+  case ParsedAttr::AT_Drepl:
+    handleDreplAttr(S, D, AL);
     break;
   case ParsedAttr::AT_Interrupt:
     handleInterruptAttr(S, D, AL);

@@ -1186,6 +1186,10 @@ def warn_pragma_force_cuda_host_device_bad_arg : Warning<
 def err_pragma_cannot_end_force_cuda_host_device : Error<
   "force_cuda_host_device end pragma without matching "
   "force_cuda_host_device begin">;
+
+def warn_pragma_drepl: Warning<
+  "Invalid drepl directive: %0 - ignored">;
+
 } // end of Parse Issue category.
 
 let CategoryName = "Modules Issue" in {

@@ -3263,24 +3263,8 @@ PragmaDreplHandler::HandlePragma(Preprocessor &PP,
 
 void Parser::HandlePragmaDrepl() {
   assert(Tok.is(tok::annot_pragma_drepl));
-  printf("Parser::HandlePragmaDrepl\n");
+//  printf("Parser::HandlePragmaDrepl\n");
 
-//  PP.EnterTokenStream(Toks, false);
   ConsumeAnnotationToken();
-//  printf("after consume annotation token\n");
   ExprResult r = ParseExpression();
-/*
-  llvm::errs() << "---" << Tok.getName() << "\n";
-  if (Tok.isNot(tok::eof) || Tok.isNot(tok::eod)) {
-      Diag(Tok.getLocation(), diag::warn_pragma_extra_tokens_at_eol) << "drepl";
-      while (Tok.isNot(tok::eof) || Tok.isNot(tok::eod))
-        ConsumeAnyToken();
-  }
-
-  ConsumeToken();
-*/
-//  printf("so far so good\n");
-
-//  if (r.isInvalid() || Actions.CheckLoopHintExpr(r.get(), Toks[0].getLocation()))
-//    return;
 }

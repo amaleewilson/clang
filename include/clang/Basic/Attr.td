@@ -3116,3 +3116,19 @@ def SpeculativeLoadHardening : InheritableAttr {
   let Subjects = SubjectList<[Function, ObjCMethod], ErrorDiag>;
   let Documentation = [SpeculativeLoadHardeningDocs];
 }
+
+
+def Drepl : InheritableAttr {
+  let Spellings = [Pragma<"", "drepl">, GNU<"drepl">];
+  let Subjects = SubjectList<[Var]>;
+  let Args = [ExprArgument<"xform">];
+  let Documentation = [Undocumented];
+
+  let AdditionalMembers = [{
+
+  void printPrettyPragma(raw_ostream &OS, const PrintingPolicy &Policy) const {
+    OS << "pretty drepl pragma";
+  }
+  }];
+}
+

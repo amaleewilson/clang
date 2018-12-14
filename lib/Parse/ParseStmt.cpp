@@ -393,9 +393,9 @@ Retry:
     HandlePragmaAttribute();
     return StmtEmpty();
 
-  case tok::annot_pragma_drepl:
+  case tok::annot_pragma_sicm:
     ProhibitAttributes(Attrs);
-    HandlePragmaDrepl();
+    HandlePragmaSICM();
     return StmtEmpty();
   }
 

@@ -21,6 +21,7 @@
 #include "clang/Parse/RAIIObjectsForParser.h"
 #include "clang/Sema/Scope.h"
 #include "llvm/ADT/StringSwitch.h"
+#include <iostream>
 using namespace clang;
 
 namespace {
@@ -258,8 +259,8 @@ struct PragmaAttributeHandler : public PragmaHandler {
   ParsedAttributes AttributesForPragmaAttribute;
 };
 
-struct PragmaDreplHandler : public PragmaHandler {
-  PragmaDreplHandler() : PragmaHandler("drepl") {}
+struct PragmaSICMHandler : public PragmaHandler {
+  PragmaSICMHandler() : PragmaHandler("SICM") {}
   void HandlePragma(Preprocessor &PP, PragmaIntroducerKind Introducer,
                     Token &FirstToken) override;
 };
@@ -385,8 +386,8 @@ void Parser::initializePragmaHandlers() {
       llvm::make_unique<PragmaAttributeHandler>(AttrFactory);
   PP.AddPragmaHandler("clang", AttributePragmaHandler.get());
 
-  DreplHandler = llvm::make_unique<PragmaDreplHandler>();
-  PP.AddPragmaHandler(DreplHandler.get());
+  SICMHandler = llvm::make_unique<PragmaSICMHandler>();
+  PP.AddPragmaHandler(SICMHandler.get());
 
 }
 
@@ -494,8 +495,8 @@ void Parser::resetPragmaHandlers() {
   PP.RemovePragmaHandler("clang", AttributePragmaHandler.get());
   AttributePragmaHandler.reset();
 
-  PP.RemovePragmaHandler(DreplHandler.get());
-  DreplHandler.reset();
+  PP.RemovePragmaHandler(SICMHandler.get());
+  SICMHandler.reset();
 }
 
 /// Handle the annotation token produced for #pragma unused(...)
@@ -3239,48 +3240,63 @@ void PragmaAttributeHandler::HandlePragma(Preprocessor &PP,
 }
 
 void
-PragmaDreplHandler::HandlePragma(Preprocessor &PP,
-                                  PragmaIntroducerKind Introducer,
-                                  Token &FirstTok) {
-  SmallVector<Token, 16> Pragma;
-  Token Tok;
-  PP.Lex(Tok);
+PragmaSICMHandler::HandlePragma(Preprocessor &PP,
+                                PragmaIntroducerKind Introducer,
+                                Token &FirstTok) {
+    SmallVector<Token, 16> Pragma;
+    llvm::errs() << "HandlePragma First: " << FirstTok.getName();
+    if (FirstTok.is(tok::identifier)) {
+        llvm::errs() << " " << FirstTok.getIdentifierInfo()->getName().str();
+    }
+    llvm::errs() << "\n";
 
-  Tok.startToken();
-  Tok.setKind(tok::annot_pragma_drepl);
-  Tok.setLocation(FirstTok.getLocation());
-
-  while (Tok.isNot(tok::eod) && Tok.isNot(tok::eof)) {
+    Token Tok = FirstTok;
+    Tok.startToken();
+    Tok.setKind(tok::annot_pragma_sicm);
+    Tok.setLocation(FirstTok.getLocation());
     Pragma.push_back(Tok);
-    PP.Lex(Tok);
-  }
 
-  auto Toks = llvm::make_unique<Token[]>(Pragma.size());
-  std::copy(Pragma.begin(), Pragma.end(), Toks.get());
-  PP.EnterTokenStream(std::move(Toks), Pragma.size(),
-                      /*DisableMacroExpansion=*/false);
+    while (Tok.isNot(tok::eod) && Tok.isNot(tok::eof)) {
+        llvm::errs() << "HandlePragma: " << Tok.getName();
+        if (Tok.is(tok::identifier)) {
+            llvm::errs() << " " << Tok.getIdentifierInfo()->getName().str();
+        }
+        llvm::errs() << "\n";
+        Pragma.push_back(Tok);
+        PP.Lex(Tok);
+    }
+
+    auto Toks = llvm::make_unique<Token[]>(Pragma.size());
+    std::copy(Pragma.begin(), Pragma.end(), Toks.get());
+    PP.EnterTokenStream(std::move(Toks), Pragma.size(),
+                        /*DisableMacroExpansion=*/false);
 }
 
-void Parser::HandlePragmaDrepl() {
-  assert(Tok.is(tok::annot_pragma_drepl));
-  printf("Parser::HandlePragmaDrepl\n");
+void Parser::HandlePragmaSICM() {
+    assert(Tok.is(tok::annot_pragma_sicm));
 
-//  PP.EnterTokenStream(Toks, false);
-  ConsumeAnnotationToken();
-//  printf("after consume annotation token\n");
-  ExprResult r = ParseExpression();
-/*
-  llvm::errs() << "---" << Tok.getName() << "\n";
-  if (Tok.isNot(tok::eof) || Tok.isNot(tok::eod)) {
-      Diag(Tok.getLocation(), diag::warn_pragma_extra_tokens_at_eol) << "drepl";
-      while (Tok.isNot(tok::eof) || Tok.isNot(tok::eod))
-        ConsumeAnyToken();
-  }
+    ConsumeAnnotationToken();
 
-  ConsumeToken();
-*/
-//  printf("so far so good\n");
+    while (Tok.is(tok::identifier)) {
+        llvm::errs() << "HandlePragmaSICM: " << Tok.getName();
+        if (Tok.is(tok::identifier)) {
+            llvm::errs() << " " << Tok.getIdentifierInfo()->getName().str();
+        }
+        llvm::errs() << "\n";
 
-//  if (r.isInvalid() || Actions.CheckLoopHintExpr(r.get(), Toks[0].getLocation()))
-//    return;
+        const bool device = llvm::StringSwitch<bool>(Tok.getIdentifierInfo()->getName())
+            .Case("device", true)
+            .Default(false);
+
+        ConsumeToken(); // remove the token here, so code afterwards only has to deal with arguments that follow
+
+        if (device) {
+            llvm::errs() << "    " << Tok.getName() << "\n";
+            ConsumeParen();
+            llvm::errs() << "        " << Tok.getName() << "\n";
+            ConsumeToken();
+            llvm::errs() << "    " << Tok.getName() << "\n";
+            ConsumeParen();
+        }
+    }
 }

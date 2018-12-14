@@ -192,7 +192,7 @@ class Parser : public CodeCompletionHandler {
   std::unique_ptr<PragmaHandler> STDCCXLIMITHandler;
   std::unique_ptr<PragmaHandler> STDCUnknownHandler;
   std::unique_ptr<PragmaHandler> AttributePragmaHandler;
-  std::unique_ptr<PragmaHandler> DreplHandler;
+  std::unique_ptr<PragmaHandler> SICMHandler;
 
   std::unique_ptr<CommentHandler> CommentSemaHandler;
 
@@ -701,7 +701,7 @@ private:
 
   void HandlePragmaAttribute();
 
-  void HandlePragmaDrepl();
+  void HandlePragmaSICM();
 
   /// GetLookAheadToken - This peeks ahead N tokens and returns that token
   /// without consuming any tokens.  LookAhead(0) returns 'Tok', LookAhead(1)

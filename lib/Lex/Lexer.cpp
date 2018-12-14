@@ -3194,7 +3194,6 @@ LexNextToken:
   // Read a character, advancing over it.
   char Char = getAndAdvanceChar(CurPtr, Result);
   tok::TokenKind Kind;
-
   switch (Char) {
   case 0:  // Null.
     // Found end of file?

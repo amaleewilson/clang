@@ -2394,3 +2394,14 @@ void Stmt::printPretty(raw_ostream &OS, PrinterHelper *Helper,
 
 // Implement virtual destructor.
 PrinterHelper::~PrinterHelper() = default;
+
+void StmtPrinter::VisitSICMStmt(SICMStmt *Node) {
+    Stmt *device = Node->getDevice();
+    for(Stmt *arena : Node->getArenas()) {
+        OS << "sicm_arena_set_device(";
+        PrintStmt(arena);
+        OS << ", ";
+        PrintStmt(device);
+        OS << ");";
+    }
+}

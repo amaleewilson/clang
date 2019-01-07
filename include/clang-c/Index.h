@@ -2617,7 +2617,9 @@ enum CXCursorKind {
   /**
    * A code completion overload candidate.
    */
-  CXCursor_OverloadCandidate             = 700
+  CXCursor_OverloadCandidate             = 700,
+
+  CXCursor_SICMStmt                      = 800
 };
 
 /**

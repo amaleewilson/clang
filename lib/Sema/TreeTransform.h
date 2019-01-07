@@ -3247,6 +3247,15 @@ public:
                                             RParenLoc);
   }
 
+  /// Build a new SICM statement
+  //
+  /// By default, performs semantic analysis to build the new statement.
+  /// Subclasses may override this routine to provide different behavior.
+  StmtResult RebuildSICMStmt(SourceLocation BeginLoc, SourceLocation EndLoc,
+                             Stmt *device, const std::vector<Stmt *> &arenas) {
+    return getSema().ActOnSICMStmt(BeginLoc, EndLoc, device, arenas);
+  }
+
 private:
   TypeLoc TransformTypeInObjectScope(TypeLoc TL,
                                      QualType ObjectType,
@@ -6832,6 +6841,25 @@ TreeTransform<Derived>::TransformForStmt(ForStmt *S) {
   return getDerived().RebuildForStmt(S->getForLoc(), S->getLParenLoc(),
                                      Init.get(), Cond, FullInc,
                                      S->getRParenLoc(), Body.get());
+}
+
+template<typename Derived>
+StmtResult
+TreeTransform<Derived>::TransformSICMStmt(SICMStmt *S) {
+    StmtResult TransformDevice = getDerived().TransformStmt(S->getDevice());
+    if (TransformDevice.isInvalid()) {
+        return StmtError();
+    }
+
+    for(Stmt *arena : S->getArenas()) {
+        StmtResult TransformArena = getDerived().TransformStmt(arena);
+        if (TransformArena.isInvalid()) {
+            return StmtError();
+        }
+    }
+
+    return getDerived().RebuildSICMStmt(S->getBeginLoc(), S->getEndLoc(),
+                                        S->getDevice(), S->getArenas());
 }
 
 template<typename Derived>

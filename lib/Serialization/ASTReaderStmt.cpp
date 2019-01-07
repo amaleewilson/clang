@@ -290,6 +290,10 @@ void ASTStmtReader::VisitDoStmt(DoStmt *S) {
   S->setRParenLoc(ReadSourceLocation());
 }
 
+void ASTStmtReader::VisitSICMStmt(SICMStmt *S) {
+    VisitStmt(S);
+}
+
 void ASTStmtReader::VisitForStmt(ForStmt *S) {
   VisitStmt(S);
   S->setInit(Record.readSubStmt());
@@ -2359,6 +2363,10 @@ Stmt *ASTReader::ReadStmtFromStream(ModuleFile &F) {
 
     case STMT_DO:
       S = new (Context) DoStmt(Empty);
+      break;
+
+    case STMT_SICM:
+      S = new (Context) SICMStmt(Empty);
       break;
 
     case STMT_FOR:

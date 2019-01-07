@@ -1600,7 +1600,7 @@ DEF_TRAVERSE_DECL(OMPThreadPrivateDecl, {
     TRY_TO(TraverseStmt(I));
   }
  })
- 
+
 DEF_TRAVERSE_DECL(OMPRequiresDecl, {
   for (auto *C : D->clauselists()) {
     TRY_TO(TraverseOMPClause(C));
@@ -3265,6 +3265,8 @@ bool RecursiveASTVisitor<Derived>::VisitOMPIsDevicePtrClause(
   TRY_TO(VisitOMPClauseList(C));
   return true;
 }
+
+DEF_TRAVERSE_STMT(SICMStmt, {})
 
 // FIXME: look at the following tricky-seeming exprs to see if we
 // need to recurse on anything.  These are ones that have methods

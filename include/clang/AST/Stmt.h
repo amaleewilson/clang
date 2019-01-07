@@ -2080,6 +2080,45 @@ public:
   }
 };
 
+// SICMStmt - This represents a SICM pragma
+class SICMStmt : public Stmt {
+    SourceLocation StartLoc;
+    SourceLocation EndLoc;
+
+    Stmt *device = nullptr;
+    std::vector <Stmt *> arenas;
+
+public:
+    SICMStmt(SourceLocation StartLoc, SourceLocation EndLoc,
+             Stmt *device, const std::vector <Stmt *> &arenas)
+        : Stmt(SICMStmtClass),
+          StartLoc(StartLoc),
+          EndLoc(EndLoc),
+          device(device),
+          arenas(arenas)
+    {}
+
+    SICMStmt(EmptyShell Empty)
+        : Stmt(SICMStmtClass),
+          StartLoc(),
+          EndLoc(),
+          device(nullptr),
+          arenas()
+    {}
+
+    Stmt *getDevice() const { return device; }
+    const std::vector <Stmt *> &getArenas() const { return arenas; };
+
+    SourceLocation getBeginLoc() const { return StartLoc; }
+    SourceLocation getEndLoc() const { return EndLoc; }
+
+    static bool classof(const Stmt *T) {
+        return T->getStmtClass() == SICMStmtClass;
+    }
+
+    child_range children() { return child_range(child_iterator(), child_iterator()); }
+};
+
 /// GotoStmt - This represents a direct goto.
 class GotoStmt : public Stmt {
   LabelDecl *Label;

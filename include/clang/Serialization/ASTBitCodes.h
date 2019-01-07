@@ -1522,7 +1522,7 @@ namespace serialization {
 
       /// An OMPRequiresDecl record.
       DECL_OMP_REQUIRES,
-	 
+
       /// An EmptyDecl record.
       DECL_EMPTY,
 
@@ -1591,6 +1591,8 @@ namespace serialization {
 
       /// A DoStmt record.
       STMT_DO,
+
+      STMT_SICM,
 
       /// A ForStmt record.
       STMT_FOR,

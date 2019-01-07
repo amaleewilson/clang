@@ -1743,6 +1743,14 @@ void Sema::CheckBreakContinueBinding(Expr *E) {
   }
 }
 
+StmtResult Sema::ActOnSICMStmt(SourceLocation BeginLoc,
+                               SourceLocation EndLoc,
+                               Stmt *device,
+                               const std::vector <Stmt *> &arenas) {
+    // don't do anything
+    return new (Context) SICMStmt(BeginLoc, EndLoc, device, arenas);
+}
+
 StmtResult Sema::ActOnForStmt(SourceLocation ForLoc, SourceLocation LParenLoc,
                               Stmt *First, ConditionResult Second,
                               FullExprArg third, SourceLocation RParenLoc,

@@ -21,7 +21,7 @@
 #include "clang/Parse/RAIIObjectsForParser.h"
 #include "clang/Sema/Scope.h"
 #include "llvm/ADT/StringSwitch.h"
-#include <iostream>
+
 using namespace clang;
 
 namespace {
@@ -3250,7 +3250,7 @@ PragmaSICMHandler::HandlePragma(Preprocessor &PP,
     }
     llvm::errs() << "\n";
 
-    Token Tok = FirstTok;
+    Token Tok;
     Tok.startToken();
     Tok.setKind(tok::annot_pragma_sicm);
     Tok.setLocation(FirstTok.getLocation());

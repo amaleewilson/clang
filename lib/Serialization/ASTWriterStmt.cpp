@@ -206,6 +206,11 @@ void ASTStmtWriter::VisitDoStmt(DoStmt *S) {
   Code = serialization::STMT_DO;
 }
 
+void ASTStmtWriter::VisitSICMStmt(SICMStmt *S) {
+    (void) S;
+    Code = serialization::STMT_SICM;
+}
+
 void ASTStmtWriter::VisitForStmt(ForStmt *S) {
   VisitStmt(S);
   Record.AddStmt(S->getInit());

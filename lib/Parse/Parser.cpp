@@ -1243,7 +1243,11 @@ Decl *Parser::ParseFunctionDefinition(ParsingDeclarator &D,
   if (LateParsedAttrs)
     ParseLexedAttributeList(*LateParsedAttrs, Res, false, true);
 
-  return ParseFunctionStatementBody(Res, BodyScope);
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
+  Decl *ret = ParseFunctionStatementBody(Res, BodyScope);
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
+
+  return ret;
 }
 
 void Parser::SkipFunctionBody() {

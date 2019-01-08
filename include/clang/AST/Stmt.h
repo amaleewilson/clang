@@ -33,6 +33,7 @@
 #include <cstddef>
 #include <iterator>
 #include <string>
+#include <iostream>
 
 namespace llvm {
 
@@ -2096,7 +2097,9 @@ public:
           EndLoc(EndLoc),
           device(device),
           arenas(arenas)
-    {}
+    {
+        std::cout << __FILE__ << ":" << __LINE__ << " " << __func__ << std::endl;
+    }
 
     SICMStmt(EmptyShell Empty)
         : Stmt(SICMStmtClass),
@@ -2104,7 +2107,9 @@ public:
           EndLoc(),
           device(nullptr),
           arenas()
-    {}
+    {
+        std::cout << __FILE__ << ":" << __LINE__ << " " << __func__ << std::endl;
+    }
 
     Stmt *getDevice() const { return device; }
     const std::vector <Stmt *> &getArenas() const { return arenas; };

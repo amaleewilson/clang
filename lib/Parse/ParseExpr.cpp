@@ -3043,7 +3043,9 @@ ExprResult Parser::ParseBlockLiteralExpression() {
     return ExprError();
   }
 
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   StmtResult Stmt(ParseCompoundStatementBody());
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   BlockScope.Exit();
   if (!Stmt.isInvalid())
     Result = Actions.ActOnBlockStmtExpr(CaretLoc, Stmt.get(), getCurScope());

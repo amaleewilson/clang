@@ -280,6 +280,7 @@ void StmtProfiler::VisitDoStmt(const DoStmt *S) {
 }
 
 void StmtProfiler::VisitSICMStmt(const SICMStmt *S) {
+    llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << ": " << S;
   VisitStmt(S);
 }
 

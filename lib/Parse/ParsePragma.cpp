@@ -3239,12 +3239,13 @@ void PragmaAttributeHandler::HandlePragma(Preprocessor &PP,
                       /*DisableMacroExpansion=*/false);
 }
 
+// parse only
 void
 PragmaSICMHandler::HandlePragma(Preprocessor &PP,
                                 PragmaIntroducerKind Introducer,
                                 Token &FirstTok) {
     SmallVector<Token, 16> Pragma;
-    llvm::errs() << "HandlePragma First: " << FirstTok.getName();
+    llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << " First: " << FirstTok.getName();
     if (FirstTok.is(tok::identifier)) {
         llvm::errs() << " " << FirstTok.getIdentifierInfo()->getName().str();
     }
@@ -3257,7 +3258,7 @@ PragmaSICMHandler::HandlePragma(Preprocessor &PP,
     Pragma.push_back(Tok);
 
     while (Tok.isNot(tok::eod) && Tok.isNot(tok::eof)) {
-        llvm::errs() << "HandlePragma: " << Tok.getName();
+        llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << ": " << Tok.getName();
         if (Tok.is(tok::identifier)) {
             llvm::errs() << " " << Tok.getIdentifierInfo()->getName().str();
         }
@@ -3272,13 +3273,16 @@ PragmaSICMHandler::HandlePragma(Preprocessor &PP,
                         /*DisableMacroExpansion=*/false);
 }
 
+// modify code
 void Parser::HandlePragmaSICM() {
     assert(Tok.is(tok::annot_pragma_sicm));
 
     ConsumeAnnotationToken();
 
+    SmallVector<Token, 10> TokenList;
+
     while (Tok.is(tok::identifier)) {
-        llvm::errs() << "HandlePragmaSICM: " << Tok.getName();
+        llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ <<  ": " << Tok.getName();
         if (Tok.is(tok::identifier)) {
             llvm::errs() << " " << Tok.getIdentifierInfo()->getName().str();
         }
@@ -3288,15 +3292,28 @@ void Parser::HandlePragmaSICM() {
             .Case("device", true)
             .Default(false);
 
-        ConsumeToken(); // remove the token here, so code afterwards only has to deal with arguments that follow
+        // ConsumeToken(); // remove the token here, so code afterwards only has to deal with arguments that follow
 
         if (device) {
+            ConsumeToken();
             llvm::errs() << "    " << Tok.getName() << "\n";
             ConsumeParen();
-            llvm::errs() << "        " << Tok.getName() << "\n";
+            llvm::errs() << "        " << Tok.getIdentifierInfo()->getName() << "\n";
             ConsumeToken();
             llvm::errs() << "    " << Tok.getName() << "\n";
             ConsumeParen();
         }
+        else {
+            llvm::errs() << "    " << Tok.getName() << " " <<  Tok.getIdentifierInfo()->getName() << "\n";
+            // TokenList.push_back(Tok);
+            ConsumeToken();
+
+        }
     }
+
+    auto TokenArray = llvm::make_unique<Token[]>(TokenList.size());
+    std::copy(TokenList.begin(), TokenList.end(), TokenArray.get());
+
+    PP.EnterTokenStream(std::move(TokenArray), TokenList.size(),
+                      /*DisableMacroExpansion=*/false);
 }

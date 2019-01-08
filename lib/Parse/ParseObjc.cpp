@@ -2452,7 +2452,9 @@ Parser::ParseObjCSynchronizedStmt(SourceLocation atLoc) {
 
   // Parse the compound statement within a new scope.
   ParseScope bodyScope(this, Scope::DeclScope | Scope::CompoundStmtScope);
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   StmtResult body(ParseCompoundStatementBody());
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   bodyScope.Exit();
 
   // If there was a semantic or parse error earlier with the
@@ -2488,7 +2490,9 @@ StmtResult Parser::ParseObjCTryStmt(SourceLocation atLoc) {
   StmtVector CatchStmts;
   StmtResult FinallyStmt;
   ParseScope TryScope(this, Scope::DeclScope | Scope::CompoundStmtScope);
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   StmtResult TryBody(ParseCompoundStatementBody());
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   TryScope.Exit();
   if (TryBody.isInvalid())
     TryBody = Actions.ActOnNullStmt(Tok.getLocation());
@@ -2531,8 +2535,11 @@ StmtResult Parser::ParseObjCTryStmt(SourceLocation atLoc) {
           SkipUntil(tok::r_paren, StopAtSemi);
 
         StmtResult CatchBody(true);
-        if (Tok.is(tok::l_brace))
+        if (Tok.is(tok::l_brace)) {
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
           CatchBody = ParseCompoundStatementBody();
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
+        }
         else
           Diag(Tok, diag::err_expected) << tok::l_brace;
         if (CatchBody.isInvalid())
@@ -2564,8 +2571,11 @@ StmtResult Parser::ParseObjCTryStmt(SourceLocation atLoc) {
                                          CR_ObjCAtFinally, 1);
 
       StmtResult FinallyBody(true);
-      if (Tok.is(tok::l_brace))
+      if (Tok.is(tok::l_brace)) {
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
         FinallyBody = ParseCompoundStatementBody();
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
+      }
       else
         Diag(Tok, diag::err_expected) << tok::l_brace;
 
@@ -2607,7 +2617,9 @@ Parser::ParseObjCAutoreleasePoolStmt(SourceLocation atLoc) {
   // statements can always hold declarations.
   ParseScope BodyScope(this, Scope::DeclScope | Scope::CompoundStmtScope);
 
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   StmtResult AutoreleasePoolBody(ParseCompoundStatementBody());
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
 
   BodyScope.Exit();
   if (AutoreleasePoolBody.isInvalid())

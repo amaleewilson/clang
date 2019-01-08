@@ -1305,7 +1305,9 @@ ExprResult Parser::ParseLambdaExpressionAfterIntroducer(
     return ExprError();
   }
 
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   StmtResult Stmt(ParseCompoundStatementBody());
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   BodyScope.Exit();
 
   if (!Stmt.isInvalid() && !TrailingReturnType.isInvalid())

@@ -37,10 +37,12 @@ StmtResult Parser::ParseStatement(SourceLocation *TrailingElseLoc,
   // we get an actual statement.
   do {
     StmtVector Stmts;
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
     Res = ParseStatementOrDeclaration(
         Stmts, AllowOpenMPStandalone ? ACK_StatementsOpenMPAnyExecutable
                                      : ACK_StatementsOpenMPNonStandalone,
         TrailingElseLoc);
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   } while (!Res.isInvalid() && !Res.get());
 
   return Res;
@@ -107,15 +109,19 @@ Parser::ParseStatementOrDeclaration(StmtVector &Stmts,
   if (!MaybeParseOpenCLUnrollHintAttribute(Attrs))
     return StmtError();
 
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   StmtResult Res = ParseStatementOrDeclarationAfterAttributes(
       Stmts, Allowed, TrailingElseLoc, Attrs);
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
 
   assert((Attrs.empty() || Res.isInvalid() || Res.isUsable()) &&
          "attributes on empty statement");
 
   if (Attrs.empty() || Res.isInvalid())
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
     return Res;
 
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   return Actions.ProcessStmtAttributes(Res.get(), Attrs, Attrs.Range);
 }
 
@@ -394,8 +400,10 @@ Retry:
     return StmtEmpty();
 
   case tok::annot_pragma_sicm:
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
     ProhibitAttributes(Attrs);
     HandlePragmaSICM();
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
     return StmtEmpty();
   }
 
@@ -616,9 +624,11 @@ StmtResult Parser::ParseLabeledStatement(ParsedAttributesWithRange &attrs) {
       // statement, but that doesn't work correctly (because ProhibitAttributes
       // can't handle GNU attributes), so only call it in the one case where
       // GNU attributes are allowed.
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
       SubStmt = ParseStatementOrDeclarationAfterAttributes(
           Stmts, /*Allowed=*/ACK_StatementsOpenMPNonStandalone, nullptr,
           TempAttrs);
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
       if (!TempAttrs.empty() && !SubStmt.isInvalid())
         SubStmt = Actions.ProcessStmtAttributes(SubStmt.get(), TempAttrs,
                                                 TempAttrs.Range);
@@ -872,7 +882,11 @@ StmtResult Parser::ParseCompoundStatement(bool isStmtExpr,
   ParseScope CompoundScope(this, ScopeFlags);
 
   // Parse the statements in the body.
-  return ParseCompoundStatementBody(isStmtExpr);
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
+  StmtResult res = ParseCompoundStatementBody(isStmtExpr);
+        llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
+
+        return res;
 }
 
 /// Parse any pragmas at the start of the compound expression. We handle these
@@ -949,7 +963,9 @@ bool Parser::ConsumeNullStmt(StmtVector &Stmts) {
     EndLoc = Tok.getLocation();
 
     // Don't just ConsumeToken() this tok::semi, do store it in AST.
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
     StmtResult R = ParseStatementOrDeclaration(Stmts, ACK_Any);
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
     if (R.isUsable())
       Stmts.push_back(R.get());
   }
@@ -1030,7 +1046,9 @@ StmtResult Parser::ParseCompoundStatementBody(bool isStmtExpr) {
 
     StmtResult R;
     if (Tok.isNot(tok::kw___extension__)) {
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
       R = ParseStatementOrDeclaration(Stmts, ACK_Any);
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
     } else {
       // __extension__ can start declarations and it can also be a unary
       // operator for expressions.  Consume multiple __extension__ markers here
@@ -2008,8 +2026,10 @@ StmtResult Parser::ParsePragmaLoopHint(StmtVector &Stmts,
   // Get the next statement.
   MaybeParseCXX11Attributes(Attrs);
 
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   StmtResult S = ParseStatementOrDeclarationAfterAttributes(
       Stmts, Allowed, TrailingElseLoc, Attrs);
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
 
   Attrs.takeAllFrom(TempAttrs);
   return S;
@@ -2031,7 +2051,9 @@ Decl *Parser::ParseFunctionStatementBody(Decl *Decl, ParseScope &BodyScope) {
   // Do not enter a scope for the brace, as the arguments are in the same scope
   // (the function body) as the body itself.  Instead, just read the statement
   // list and put it into a CompoundStmt for safe keeping.
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   StmtResult FnBody(ParseCompoundStatementBody());
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
 
   // If the function body could not be parsed, make a bogus compoundstmt.
   if (FnBody.isInvalid()) {
@@ -2314,7 +2336,9 @@ void Parser::ParseMicrosoftIfExistsStatement(StmtVector &Stmts) {
 
   // Condition is true, parse the statements.
   while (Tok.isNot(tok::r_brace)) {
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
     StmtResult R = ParseStatementOrDeclaration(Stmts, ACK_Any);
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
     if (R.isUsable())
       Stmts.push_back(R.get());
   }

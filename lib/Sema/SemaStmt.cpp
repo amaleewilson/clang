@@ -1747,6 +1747,7 @@ StmtResult Sema::ActOnSICMStmt(SourceLocation BeginLoc,
                                SourceLocation EndLoc,
                                Stmt *device,
                                const std::vector <Stmt *> &arenas) {
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
     // don't do anything
     return new (Context) SICMStmt(BeginLoc, EndLoc, device, arenas);
 }

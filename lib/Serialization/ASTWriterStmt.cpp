@@ -207,6 +207,7 @@ void ASTStmtWriter::VisitDoStmt(DoStmt *S) {
 }
 
 void ASTStmtWriter::VisitSICMStmt(SICMStmt *S) {
+    llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << ": " << S;
     (void) S;
     Code = serialization::STMT_SICM;
 }

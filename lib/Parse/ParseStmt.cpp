@@ -117,9 +117,10 @@ Parser::ParseStatementOrDeclaration(StmtVector &Stmts,
   assert((Attrs.empty() || Res.isInvalid() || Res.isUsable()) &&
          "attributes on empty statement");
 
-  if (Attrs.empty() || Res.isInvalid())
+  if (Attrs.empty() || Res.isInvalid()) {
       llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
     return Res;
+  }
 
       llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   return Actions.ProcessStmtAttributes(Res.get(), Attrs, Attrs.Range);
@@ -158,6 +159,7 @@ StmtResult
 Parser::ParseStatementOrDeclarationAfterAttributes(StmtVector &Stmts,
           AllowedConstructsKind Allowed, SourceLocation *TrailingElseLoc,
           ParsedAttributesWithRange &Attrs) {
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
   const char *SemiError = nullptr;
   StmtResult Res;
 
@@ -166,6 +168,7 @@ Parser::ParseStatementOrDeclarationAfterAttributes(StmtVector &Stmts,
   // or they directly 'return;' if not.
 Retry:
   tok::TokenKind Kind  = Tok.getKind();
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << Tok.getName() << std::endl;
   SourceLocation AtLoc;
   switch (Kind) {
   case tok::at: // May be a @try or @throw statement
@@ -369,8 +372,15 @@ Retry:
     return HandlePragmaCaptured();
 
   case tok::annot_pragma_openmp:
+  {
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
     ProhibitAttributes(Attrs);
-    return ParseOpenMPDeclarativeOrExecutableDirective(Allowed);
+    std::cout << std::endl << std::endl << std::endl << std::endl << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
+    auto ret = ParseOpenMPDeclarativeOrExecutableDirective(Allowed);
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl << std::endl << std::endl << std::endl << std::endl;
+
+    return ret;
+  }
 
   case tok::annot_pragma_ms_pointers_to_members:
     ProhibitAttributes(Attrs);
@@ -417,6 +427,7 @@ Retry:
     SkipUntil(tok::r_brace, StopAtSemi | StopBeforeMatch);
   }
 
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   return Res;
 }
 
@@ -1046,7 +1057,7 @@ StmtResult Parser::ParseCompoundStatementBody(bool isStmtExpr) {
 
     StmtResult R;
     if (Tok.isNot(tok::kw___extension__)) {
-      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
+        llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << Tok.getName() << "\n";
       R = ParseStatementOrDeclaration(Stmts, ACK_Any);
       llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
     } else {
@@ -1089,11 +1100,15 @@ StmtResult Parser::ParseCompoundStatementBody(bool isStmtExpr) {
       }
     }
 
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
     if (R.isUsable())
       Stmts.push_back(R.get());
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   }
 
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   SourceLocation CloseLoc = Tok.getLocation();
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
 
   // We broke out of the while loop because we found a '}' or EOF.
   if (!T.consumeClose())
@@ -1101,6 +1116,7 @@ StmtResult Parser::ParseCompoundStatementBody(bool isStmtExpr) {
     // instead of dropping everything and returning StmtError();
     CloseLoc = T.getCloseLocation();
 
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   return Actions.ActOnCompoundStmt(T.getOpenLocation(), CloseLoc,
                                    Stmts, isStmtExpr);
 }

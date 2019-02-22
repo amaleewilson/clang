@@ -17,6 +17,7 @@
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Support/ErrorHandling.h"
 #include <cassert>
+#include <iostream>
 
 using namespace clang;
 
@@ -775,6 +776,7 @@ bool clang::isAllowedClauseForDirective(OpenMPDirectiveKind DKind,
 }
 
 bool clang::isOpenMPLoopDirective(OpenMPDirectiveKind DKind) {
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
   return DKind == OMPD_simd || DKind == OMPD_for || DKind == OMPD_for_simd ||
          DKind == OMPD_parallel_for || DKind == OMPD_parallel_for_simd ||
          DKind == OMPD_taskloop || DKind == OMPD_taskloop_simd ||
@@ -920,7 +922,9 @@ void clang::getOpenMPCaptureRegions(
   case OMPD_parallel_sections:
   case OMPD_distribute_parallel_for:
   case OMPD_distribute_parallel_for_simd:
+      std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__  << std::endl;
     CaptureRegions.push_back(OMPD_parallel);
+      std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__  << std::endl;
     break;
   case OMPD_target_teams:
   case OMPD_target_teams_distribute:

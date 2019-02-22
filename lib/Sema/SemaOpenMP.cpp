@@ -29,6 +29,8 @@
 #include "clang/Sema/ScopeInfo.h"
 #include "clang/Sema/SemaInternal.h"
 #include "llvm/ADT/PointerEmbeddedInt.h"
+#include <iostream>
+
 using namespace clang;
 
 //===----------------------------------------------------------------------===//
@@ -1603,9 +1605,11 @@ void Sema::adjustOpenMPTargetScopeIndex(unsigned &FunctionScopesIndex,
 }
 
 void Sema::startOpenMPLoop() {
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
   assert(LangOpts.OpenMP && "OpenMP must be enabled.");
   if (isOpenMPLoopDirective(DSAStack->getCurrentDirective()))
     DSAStack->loopInit();
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
 }
 
 bool Sema::isOpenMPPrivateDecl(const ValueDecl *D, unsigned Level) const {
@@ -2424,6 +2428,7 @@ void Sema::ActOnOpenMPRegionStart(OpenMPDirectiveKind DKind, Scope *CurScope) {
   case OMPD_teams:
   case OMPD_teams_distribute:
   case OMPD_teams_distribute_simd: {
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
     QualType KmpInt32Ty = Context.getIntTypeForBitwidth(32, 1).withConst();
     QualType KmpInt32PtrTy =
         Context.getPointerType(KmpInt32Ty).withConst().withRestrict();
@@ -2434,6 +2439,7 @@ void Sema::ActOnOpenMPRegionStart(OpenMPDirectiveKind DKind, Scope *CurScope) {
     };
     ActOnCapturedRegionStart(DSAStack->getConstructLoc(), CurScope, CR_OpenMP,
                              Params);
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
     break;
   }
   case OMPD_target_teams:
@@ -2529,11 +2535,14 @@ void Sema::ActOnOpenMPRegionStart(OpenMPDirectiveKind DKind, Scope *CurScope) {
   case OMPD_ordered:
   case OMPD_atomic:
   case OMPD_target_data: {
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
     Sema::CapturedParamNameType Params[] = {
         std::make_pair(StringRef(), QualType()) // __context with shared vars
     };
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
     ActOnCapturedRegionStart(DSAStack->getConstructLoc(), CurScope, CR_OpenMP,
                              Params);
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
     break;
   }
   case OMPD_task: {
@@ -3280,10 +3289,13 @@ static bool checkIfClauses(Sema &S, OpenMPDirectiveKind Kind,
   return ErrorFound;
 }
 
+
 StmtResult Sema::ActOnOpenMPExecutableDirective(
     OpenMPDirectiveKind Kind, const DeclarationNameInfo &DirName,
     OpenMPDirectiveKind CancelRegion, ArrayRef<OMPClause *> Clauses,
     Stmt *AStmt, SourceLocation StartLoc, SourceLocation EndLoc) {
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
+    AStmt->dumpColor();
   StmtResult Res = StmtError();
   // First check CancelRegion which is then used in checkNestingOfRegions.
   if (checkCancelRegion(*this, Kind, CancelRegion, StartLoc) ||
@@ -3291,12 +3303,16 @@ StmtResult Sema::ActOnOpenMPExecutableDirective(
                             StartLoc))
     return StmtError();
 
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
+
   llvm::SmallVector<OMPClause *, 8> ClausesWithImplicit;
   VarsWithInheritedDSAType VarsWithInheritedDSA;
   bool ErrorFound = false;
   ClausesWithImplicit.append(Clauses.begin(), Clauses.end());
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
   if (AStmt && !CurContext->isDependentContext()) {
     assert(isa<CapturedStmt>(AStmt) && "Captured statement expected");
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
 
     // Check default data sharing attributes for referenced variables.
     DSAAttrChecker DSAChecker(DSAStack, *this, cast<CapturedStmt>(AStmt));
@@ -3347,6 +3363,7 @@ StmtResult Sema::ActOnOpenMPExecutableDirective(
       }
     }
   }
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
 
   llvm::SmallVector<OpenMPDirectiveKind, 4> AllowedNameModifiers;
   switch (Kind) {
@@ -3390,9 +3407,12 @@ StmtResult Sema::ActOnOpenMPExecutableDirective(
                                        StartLoc, EndLoc);
     break;
   case OMPD_parallel_for:
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
     Res = ActOnOpenMPParallelForDirective(ClausesWithImplicit, AStmt, StartLoc,
                                           EndLoc, VarsWithInheritedDSA);
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
     AllowedNameModifiers.push_back(OMPD_parallel);
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
     break;
   case OMPD_parallel_for_simd:
     Res = ActOnOpenMPParallelForSimdDirective(
@@ -4069,7 +4089,7 @@ bool OpenMPIterationSpaceChecker::setStep(Expr *NewStep, bool Subtract) {
     if (!TestIsLessOp.hasValue())
       TestIsLessOp = IsConstPos || (IsUnsigned && !Subtract);
     if (UB && (IsConstZero ||
-               (TestIsLessOp.getValue() ? 
+               (TestIsLessOp.getValue() ?
                   (IsConstNeg || (IsUnsigned && Subtract)) :
                   (IsConstPos || (IsUnsigned && !Subtract))))) {
       SemaRef.Diag(NewStep->getExprLoc(),
@@ -4244,7 +4264,7 @@ bool OpenMPIterationSpaceChecker::checkAndSetCond(Expr *S) {
                        Op == OO_Less || Op == OO_Greater, CE->getSourceRange(),
                        CE->getOperatorLoc());
         break;
-      case OO_ExclaimEqual: 
+      case OO_ExclaimEqual:
         return setUB(getInitLCDecl(CE->getArg(0)) == LCDecl ?
                      CE->getArg(1) : CE->getArg(0),
                      /*LessOp=*/llvm::None,
@@ -4502,7 +4522,7 @@ Expr *OpenMPIterationSpaceChecker::buildPreCond(
 
   ExprResult CondExpr =
       SemaRef.BuildBinOp(S, DefaultLoc,
-                         TestIsLessOp.getValue() ? 
+                         TestIsLessOp.getValue() ?
                            (TestIsStrictOp ? BO_LT : BO_LE) :
                            (TestIsStrictOp ? BO_GT : BO_GE),
                          NewLB.get(), NewUB.get());
@@ -5149,6 +5169,8 @@ checkOpenMPLoop(OpenMPDirectiveKind DKind, Expr *CollapseLoopCountExpr,
   // true).
   auto PreCond = ExprResult(IterSpaces[0].PreCond);
   Expr *N0 = IterSpaces[0].NumIterations;
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
+  N0->dumpColor();
   ExprResult LastIteration32 =
       widenIterationCount(/*Bits=*/32,
                           SemaRef
@@ -5173,6 +5195,10 @@ checkOpenMPLoop(OpenMPDirectiveKind DKind, Expr *CollapseLoopCountExpr,
   bool AllCountsNeedLessThan32Bits = C.getTypeSize(N0->getType()) < 32;
 
   Scope *CurScope = DSA.getCurScope();
+
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << NestedLoopCount << std::endl;
+  CurScope->dump();
+
   for (unsigned Cnt = 1; Cnt < NestedLoopCount; ++Cnt) {
     if (PreCond.isUsable()) {
       PreCond =
@@ -5181,6 +5207,8 @@ checkOpenMPLoop(OpenMPDirectiveKind DKind, Expr *CollapseLoopCountExpr,
     }
     Expr *N = IterSpaces[Cnt].NumIterations;
     SourceLocation Loc = N->getExprLoc();
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << Loc.printToString(C.getSourceManager()) << std::endl;
+
     AllCountsNeedLessThan32Bits &= C.getTypeSize(N->getType()) < 32;
     if (LastIteration32.isUsable())
       LastIteration32 = SemaRef.BuildBinOp(
@@ -5199,6 +5227,7 @@ checkOpenMPLoop(OpenMPDirectiveKind DKind, Expr *CollapseLoopCountExpr,
                                          /*AllowExplicit=*/true)
               .get());
   }
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
 
   // Choose either the 32-bit or 64-bit version.
   ExprResult LastIteration = LastIteration64;
@@ -5254,6 +5283,7 @@ checkOpenMPLoop(OpenMPDirectiveKind DKind, Expr *CollapseLoopCountExpr,
   }
 
   SourceLocation InitLoc = IterSpaces[0].InitSrcRange.getBegin();
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << InitLoc.printToString(C.getSourceManager()) << std::endl;
 
   // Build variables passed into runtime, necessary for worksharing directives.
   ExprResult LB, UB, IL, ST, EUB, CombLB, CombUB, PrevLB, PrevUB, CombEUB;
@@ -5265,12 +5295,17 @@ checkOpenMPLoop(OpenMPDirectiveKind DKind, Expr *CollapseLoopCountExpr,
     SemaRef.AddInitializerToDecl(LBDecl,
                                  SemaRef.ActOnIntegerConstant(InitLoc, 0).get(),
                                  /*DirectInit*/ false);
+    LBDecl->dumpColor();
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << InitLoc.printToString(C.getSourceManager()) << std::endl;
 
     // Upper bound variable, initialized with last iteration number.
     VarDecl *UBDecl = buildVarDecl(SemaRef, InitLoc, VType, ".omp.ub");
+    UBDecl->dumpColor();
     UB = buildDeclRefExpr(SemaRef, UBDecl, VType, InitLoc);
     SemaRef.AddInitializerToDecl(UBDecl, LastIteration.get(),
                                  /*DirectInit*/ false);
+    LBDecl->dumpColor();
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << InitLoc.printToString(C.getSourceManager()) << std::endl;
 
     // A 32-bit variable-flag where runtime returns 1 for the last iteration.
     // This will be used to implement clause 'lastprivate'.
@@ -5280,6 +5315,8 @@ checkOpenMPLoop(OpenMPDirectiveKind DKind, Expr *CollapseLoopCountExpr,
     SemaRef.AddInitializerToDecl(ILDecl,
                                  SemaRef.ActOnIntegerConstant(InitLoc, 0).get(),
                                  /*DirectInit*/ false);
+    ILDecl->dumpColor();
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << InitLoc.printToString(C.getSourceManager()) << std::endl;
 
     // Stride variable returned by runtime (we initialize it to 1 by default).
     VarDecl *STDecl =
@@ -5313,6 +5350,8 @@ checkOpenMPLoop(OpenMPDirectiveKind DKind, Expr *CollapseLoopCountExpr,
           CombLBDecl, SemaRef.ActOnIntegerConstant(InitLoc, 0).get(),
           /*DirectInit*/ false);
 
+      CombLBDecl->dumpColor();
+
       // Upper bound variable, initialized with last iteration number.
       VarDecl *CombUBDecl =
           buildVarDecl(SemaRef, InitLoc, VType, ".omp.comb.ub");
@@ -5320,6 +5359,7 @@ checkOpenMPLoop(OpenMPDirectiveKind DKind, Expr *CollapseLoopCountExpr,
       SemaRef.AddInitializerToDecl(CombUBDecl, LastIteration.get(),
                                    /*DirectInit*/ false);
 
+      CombUBDecl->dumpColor();
       ExprResult CombIsUBGreater = SemaRef.BuildBinOp(
           CurScope, InitLoc, BO_GT, CombUB.get(), LastIteration.get());
       ExprResult CombCondOp =
@@ -5955,8 +5995,10 @@ StmtResult Sema::ActOnOpenMPCriticalDirective(
 StmtResult Sema::ActOnOpenMPParallelForDirective(
     ArrayRef<OMPClause *> Clauses, Stmt *AStmt, SourceLocation StartLoc,
     SourceLocation EndLoc, VarsWithInheritedDSAType &VarsWithImplicitDSA) {
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
   if (!AStmt)
     return StmtError();
+  AStmt->dumpColor();
 
   auto *CS = cast<CapturedStmt>(AStmt);
   // 1.2.2 OpenMP Language Terminology
@@ -5965,6 +6007,7 @@ StmtResult Sema::ActOnOpenMPParallelForDirective(
   // The point of exit cannot be a branch out of the structured block.
   // longjmp() and throw() must not violate the entry/exit criteria.
   CS->getCapturedDecl()->setNothrow();
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
 
   OMPLoopDirective::HelperExprs B;
   // In presence of clause 'collapse' or 'ordered' with number of loops, it will
@@ -5975,9 +6018,12 @@ StmtResult Sema::ActOnOpenMPParallelForDirective(
                       VarsWithImplicitDSA, B);
   if (NestedLoopCount == 0)
     return StmtError();
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
+  std::cout << StartLoc.printToString(SourceMgr) << " " << EndLoc.printToString(SourceMgr) << std::endl;
 
   assert((CurContext->isDependentContext() || B.builtAll()) &&
          "omp parallel for loop exprs were not built");
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
 
   if (!CurContext->isDependentContext()) {
     // Finalize the clauses that need pre-built expressions for CodeGen.
@@ -5991,6 +6037,7 @@ StmtResult Sema::ActOnOpenMPParallelForDirective(
   }
 
   setFunctionHasBranchProtectedScope();
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
   return OMPParallelForDirective::Create(Context, StartLoc, EndLoc,
                                          NestedLoopCount, Clauses, AStmt, B,
                                          DSAStack->isCancelRegion());

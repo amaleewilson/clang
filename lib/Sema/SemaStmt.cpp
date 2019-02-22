@@ -4270,6 +4270,7 @@ buildCapturedStmtCaptureList(SmallVectorImpl<CapturedStmt::Capture> &Captures,
 void Sema::ActOnCapturedRegionStart(SourceLocation Loc, Scope *CurScope,
                                     CapturedRegionKind Kind,
                                     unsigned NumParams) {
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
   CapturedDecl *CD = nullptr;
   RecordDecl *RD = CreateCapturedStmtRecordDecl(CD, Loc, NumParams);
 
@@ -4294,11 +4295,13 @@ void Sema::ActOnCapturedRegionStart(SourceLocation Loc, Scope *CurScope,
 
   PushExpressionEvaluationContext(
       ExpressionEvaluationContext::PotentiallyEvaluated);
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
 }
 
 void Sema::ActOnCapturedRegionStart(SourceLocation Loc, Scope *CurScope,
                                     CapturedRegionKind Kind,
                                     ArrayRef<CapturedParamNameType> Params) {
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << CurScope->isOpenMPLoopDirectiveScope() << " " << Loc.printToString(Context.getSourceManager()) << std::endl;
   CapturedDecl *CD = nullptr;
   RecordDecl *RD = CreateCapturedStmtRecordDecl(CD, Loc, Params.size());
 
@@ -4352,6 +4355,7 @@ void Sema::ActOnCapturedRegionStart(SourceLocation Loc, Scope *CurScope,
 
   PushExpressionEvaluationContext(
       ExpressionEvaluationContext::PotentiallyEvaluated);
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
 }
 
 void Sema::ActOnCapturedRegionError() {

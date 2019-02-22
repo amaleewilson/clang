@@ -548,10 +548,15 @@ static llvm::Function *emitOutlinedFunctionPrologue(
 
 llvm::Function *
 CodeGenFunction::GenerateOpenMPCapturedStmtFunction(const CapturedStmt &S) {
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
   assert(
       CapturedStmtInfo &&
       "CapturedStmtInfo should be set when generating the captured function");
   const CapturedDecl *CD = S.getCapturedDecl();
+
+  CD->print(llvm::errs());
+  llvm::errs() << "\n";
+
   // Build the argument list.
   bool NeedWrapperFunction =
       getDebugInfo() &&
@@ -564,10 +569,16 @@ CodeGenFunction::GenerateOpenMPCapturedStmtFunction(const CapturedStmt &S) {
   Out << CapturedStmtInfo->getHelperName();
   if (NeedWrapperFunction)
     Out << "_debug__";
+
+  llvm::errs() << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << Out.str() << "\n";
+
   FunctionOptions FO(&S, !NeedWrapperFunction, /*RegisterCastedArgsOnly=*/false,
                      Out.str());
   llvm::Function *F = emitOutlinedFunctionPrologue(*this, Args, LocalAddrs,
                                                    VLASizes, CXXThisValue, FO);
+
+  llvm::errs() << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << *F << "\n";
+
   for (const auto &LocalAddrPair : LocalAddrs) {
     if (LocalAddrPair.second.first) {
       setAddrOfLocalVar(LocalAddrPair.second.first,
@@ -580,6 +591,7 @@ CodeGenFunction::GenerateOpenMPCapturedStmtFunction(const CapturedStmt &S) {
   CapturedStmtInfo->EmitBody(*this, CD->getBody());
   FinishFunction(CD->getBodyRBrace());
   if (!NeedWrapperFunction)
+  llvm::errs() << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << *F << "\n";
     return F;
 
   FunctionOptions WrapperFO(&S, /*UIntPtrCastRequired=*/true,
@@ -593,6 +605,7 @@ CodeGenFunction::GenerateOpenMPCapturedStmtFunction(const CapturedStmt &S) {
   llvm::Function *WrapperF =
       emitOutlinedFunctionPrologue(WrapperCGF, Args, LocalAddrs, VLASizes,
                                    WrapperCGF.CXXThisValue, WrapperFO);
+  llvm::errs() << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << *WrapperF << "\n";
   llvm::SmallVector<llvm::Value *, 4> CallArgs;
   for (const auto *Arg : Args) {
     llvm::Value *CallArg;
@@ -619,6 +632,7 @@ CodeGenFunction::GenerateOpenMPCapturedStmtFunction(const CapturedStmt &S) {
   CGM.getOpenMPRuntime().emitOutlinedFunctionCall(WrapperCGF, S.getBeginLoc(),
                                                   F, CallArgs);
   WrapperCGF.FinishFunction();
+  llvm::errs() << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << *WrapperF << "\n";
   return WrapperF;
 }
 
@@ -1227,10 +1241,13 @@ static void emitCommonOMPParallelDirective(
     CodeGenFunction &CGF, const OMPExecutableDirective &S,
     OpenMPDirectiveKind InnermostKind, const RegionCodeGenTy &CodeGen,
     const CodeGenBoundParametersTy &CodeGenBoundParameters) {
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   const CapturedStmt *CS = S.getCapturedStmt(OMPD_parallel);
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   llvm::Value *OutlinedFn =
       CGF.CGM.getOpenMPRuntime().emitParallelOutlinedFunction(
           S, *CS->getCapturedDecl()->param_begin(), InnermostKind, CodeGen);
+  llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << *OutlinedFn << "\n";
   if (const auto *NumThreadsClause = S.getSingleClause<OMPNumThreadsClause>()) {
     CodeGenFunction::RunCleanupsScope NumThreadsScope(CGF);
     llvm::Value *NumThreads =
@@ -1239,11 +1256,13 @@ static void emitCommonOMPParallelDirective(
     CGF.CGM.getOpenMPRuntime().emitNumThreadsClause(
         CGF, NumThreads, NumThreadsClause->getBeginLoc());
   }
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   if (const auto *ProcBindClause = S.getSingleClause<OMPProcBindClause>()) {
     CodeGenFunction::RunCleanupsScope ProcBindScope(CGF);
     CGF.CGM.getOpenMPRuntime().emitProcBindClause(
         CGF, ProcBindClause->getProcBindKind(), ProcBindClause->getBeginLoc());
   }
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   const Expr *IfCond = nullptr;
   for (const auto *C : S.getClausesOfKind<OMPIfClause>()) {
     if (C->getNameModifier() == OMPD_unknown ||
@@ -1252,6 +1271,7 @@ static void emitCommonOMPParallelDirective(
       break;
     }
   }
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
 
   OMPParallelScope Scope(CGF, S);
   llvm::SmallVector<llvm::Value *, 16> CapturedVars;
@@ -1263,6 +1283,7 @@ static void emitCommonOMPParallelDirective(
   CGF.GenerateOpenMPCapturedVars(*CS, CapturedVars);
   CGF.CGM.getOpenMPRuntime().emitParallelCall(CGF, S.getBeginLoc(), OutlinedFn,
                                               CapturedVars, IfCond);
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
 }
 
 static void emitEmptyBoundParameters(CodeGenFunction &,
@@ -1285,13 +1306,20 @@ void CodeGenFunction::EmitOMPParallelDirective(const OMPParallelDirective &S) {
           /*ForceSimpleCall=*/true);
     }
     CGF.EmitOMPPrivateClause(S, PrivateScope);
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
     CGF.EmitOMPReductionClauseInit(S, PrivateScope);
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
     (void)PrivateScope.Privatize();
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
     CGF.EmitStmt(S.getCapturedStmt(OMPD_parallel)->getCapturedStmt());
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
     CGF.EmitOMPReductionClauseFinal(S, /*ReductionKind=*/OMPD_parallel);
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   };
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   emitCommonOMPParallelDirective(*this, S, OMPD_parallel, CodeGen,
                                  emitEmptyBoundParameters);
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   emitPostUpdateForReductionClause(*this, S,
                                    [](CodeGenFunction &) { return nullptr; });
 }
@@ -1316,7 +1344,9 @@ void CodeGenFunction::EmitOMPLoopBody(const OMPLoopDirective &D,
   JumpDest Continue = getJumpDestInCurrentScope("omp.body.continue");
   BreakContinueStack.push_back(BreakContinue(LoopExit, Continue));
   // Emit loop body.
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   EmitStmt(D.getBody());
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   // The end (updates/cleanups).
   EmitBlock(Continue.getBlock());
   BreakContinueStack.pop_back();
@@ -2568,7 +2598,9 @@ void CodeGenFunction::EmitSections(const OMPExecutableDirective &S) {
           auto CaseBB = CGF.createBasicBlock(".omp.sections.case");
           CGF.EmitBlock(CaseBB);
           SwitchStmt->addCase(CGF.Builder.getInt32(CaseNumber), CaseBB);
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
           CGF.EmitStmt(SubStmt);
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
           CGF.EmitBranch(ExitBB);
           ++CaseNumber;
         }
@@ -2751,8 +2783,10 @@ void CodeGenFunction::EmitOMPParallelForDirective(
     CGF.EmitOMPWorksharingLoop(S, S.getEnsureUpperBound(), emitForLoopBounds,
                                emitDispatchForLoopBounds);
   };
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   emitCommonOMPParallelDirective(*this, S, OMPD_for, CodeGen,
                                  emitEmptyBoundParameters);
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
 }
 
 void CodeGenFunction::EmitOMPParallelForSimdDirective(
@@ -4013,11 +4047,13 @@ void CodeGenFunction::EmitOMPAtomicDirective(const OMPAtomicDirective &S) {
 static void emitCommonOMPTargetDirective(CodeGenFunction &CGF,
                                          const OMPExecutableDirective &S,
                                          const RegionCodeGenTy &CodeGen) {
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
   assert(isOpenMPTargetExecutionDirective(S.getDirectiveKind()));
   CodeGenModule &CGM = CGF.CGM;
 
   // On device emit this construct as inlined code.
   if (CGM.getLangOpts().OpenMPIsDevice) {
+      std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " isdevice" << std::endl;
     OMPLexicalScope Scope(CGF, S, OMPD_target);
     CGM.getOpenMPRuntime().emitInlinedDirective(
         CGF, OMPD_target, [&S](CodeGenFunction &CGF, PrePostActionTy &) {
@@ -4026,6 +4062,7 @@ static void emitCommonOMPTargetDirective(CodeGenFunction &CGF,
     return;
   }
 
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
   llvm::Function *Fn = nullptr;
   llvm::Constant *FnID = nullptr;
 
@@ -4044,6 +4081,10 @@ static void emitCommonOMPTargetDirective(CodeGenFunction &CGF,
   if (auto *C = S.getSingleClause<OMPDeviceClause>())
     Device = C->getDevice();
 
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
+  Device->dumpColor();
+
+
   // Check if we have an if clause whose conditional always evaluates to false
   // or if we do not have any targets specified. If so the target region is not
   // an offload entry point.
@@ -4055,6 +4096,7 @@ static void emitCommonOMPTargetDirective(CodeGenFunction &CGF,
   }
   if (CGM.getLangOpts().OMPTargetTriples.empty())
     IsOffloadEntry = false;
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << IfCond << " " << CGM.getLangOpts().OMPTargetTriples.empty() << " " << IsOffloadEntry <<std::endl;
 
   assert(CGF.CurFuncDecl && "No parent declaration for target region!");
   StringRef ParentName;
@@ -4068,11 +4110,17 @@ static void emitCommonOMPTargetDirective(CodeGenFunction &CGF,
     ParentName =
         CGM.getMangledName(GlobalDecl(cast<FunctionDecl>(CGF.CurFuncDecl)));
 
+
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << ParentName.str() << std::endl;
+
   // Emit target region as a standalone region.
   CGM.getOpenMPRuntime().emitTargetOutlinedFunction(S, ParentName, Fn, FnID,
                                                     IsOffloadEntry, CodeGen);
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
   OMPLexicalScope Scope(CGF, S, OMPD_task);
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
   CGM.getOpenMPRuntime().emitTargetCall(CGF, S, Fn, FnID, IfCond, Device);
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
 }
 
 static void emitTargetRegion(CodeGenFunction &CGF, const OMPTargetDirective &S,
@@ -4771,8 +4819,10 @@ static void emitTargetParallelForRegion(CodeGenFunction &CGF,
     CGF.EmitOMPWorksharingLoop(S, S.getEnsureUpperBound(), emitForLoopBounds,
                                emitDispatchForLoopBounds);
   };
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   emitCommonOMPParallelDirective(CGF, S, OMPD_for, CodeGen,
                                  emitEmptyBoundParameters);
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
 }
 
 void CodeGenFunction::EmitOMPTargetParallelForDeviceFunction(
@@ -5067,4 +5117,3 @@ void CodeGenFunction::EmitSimpleOMPExecutableDirective(
                                                   : D.getDirectiveKind(),
       CodeGen);
 }
-

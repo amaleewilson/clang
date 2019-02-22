@@ -15,6 +15,8 @@
 
 #include "clang/AST/ASTContext.h"
 
+#include <iostream>
+
 using namespace clang;
 
 void OMPExecutableDirective::setClauses(ArrayRef<OMPClause *> Clauses) {
@@ -336,6 +338,7 @@ OMPParallelForDirective *OMPParallelForDirective::Create(
     const ASTContext &C, SourceLocation StartLoc, SourceLocation EndLoc,
     unsigned CollapsedNum, ArrayRef<OMPClause *> Clauses, Stmt *AssociatedStmt,
     const HelperExprs &Exprs, bool HasCancel) {
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << StartLoc.printToString(C.getSourceManager()) << " " << EndLoc.printToString(C.getSourceManager()) << std::endl;
   unsigned Size =
       llvm::alignTo(sizeof(OMPParallelForDirective), alignof(OMPClause *));
   void *Mem = C.Allocate(Size + sizeof(OMPClause *) * Clauses.size() +
@@ -343,6 +346,7 @@ OMPParallelForDirective *OMPParallelForDirective::Create(
                              numLoopChildren(CollapsedNum, OMPD_parallel_for));
   OMPParallelForDirective *Dir = new (Mem)
       OMPParallelForDirective(StartLoc, EndLoc, CollapsedNum, Clauses.size());
+
   Dir->setClauses(Clauses);
   Dir->setAssociatedStmt(AssociatedStmt);
   Dir->setIterationVariable(Exprs.IterationVarRef);
@@ -367,6 +371,7 @@ OMPParallelForDirective *OMPParallelForDirective::Create(
   Dir->setFinals(Exprs.Finals);
   Dir->setPreInits(Exprs.PreInits);
   Dir->setHasCancel(HasCancel);
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
   return Dir;
 }
 
@@ -385,6 +390,7 @@ OMPParallelForSimdDirective *OMPParallelForSimdDirective::Create(
     const ASTContext &C, SourceLocation StartLoc, SourceLocation EndLoc,
     unsigned CollapsedNum, ArrayRef<OMPClause *> Clauses, Stmt *AssociatedStmt,
     const HelperExprs &Exprs) {
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
   unsigned Size =
       llvm::alignTo(sizeof(OMPParallelForSimdDirective), alignof(OMPClause *));
   void *Mem = C.Allocate(
@@ -415,6 +421,7 @@ OMPParallelForSimdDirective *OMPParallelForSimdDirective::Create(
   Dir->setUpdates(Exprs.Updates);
   Dir->setFinals(Exprs.Finals);
   Dir->setPreInits(Exprs.PreInits);
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
   return Dir;
 }
 
@@ -774,6 +781,9 @@ OMPTargetParallelForDirective::CreateEmpty(const ASTContext &C,
 OMPTargetDataDirective *OMPTargetDataDirective::Create(
     const ASTContext &C, SourceLocation StartLoc, SourceLocation EndLoc,
     ArrayRef<OMPClause *> Clauses, Stmt *AssociatedStmt) {
+
+    std::cout << StartLoc.printToString(C.getSourceManager()) << std::endl;
+
   void *Mem = C.Allocate(
       llvm::alignTo(sizeof(OMPTargetDataDirective), alignof(OMPClause *)) +
       sizeof(OMPClause *) * Clauses.size() + sizeof(Stmt *));

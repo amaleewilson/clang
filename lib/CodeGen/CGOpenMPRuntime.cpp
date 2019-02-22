@@ -29,6 +29,8 @@
 #include "llvm/Support/Format.h"
 #include "llvm/Support/raw_ostream.h"
 #include <cassert>
+#include <iostream>
+#include "/home/jlee/.local/SICM/include/sicm_low.h"
 
 using namespace clang;
 using namespace CodeGen;
@@ -1349,8 +1351,11 @@ static llvm::Value *emitParallelOrTeamsOutlinedFunction(
     HasCancel = OPD->hasCancel();
   else if (const auto *OPSD = dyn_cast<OMPParallelSectionsDirective>(&D))
     HasCancel = OPSD->hasCancel();
-  else if (const auto *OPFD = dyn_cast<OMPParallelForDirective>(&D))
+  else if (const auto *OPFD = dyn_cast<OMPParallelForDirective>(&D)) {
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
     HasCancel = OPFD->hasCancel();
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
+  }
   else if (const auto *OPFD = dyn_cast<OMPTargetParallelForDirective>(&D))
     HasCancel = OPFD->hasCancel();
   else if (const auto *OPFD = dyn_cast<OMPDistributeParallelForDirective>(&D))
@@ -1364,6 +1369,7 @@ static llvm::Value *emitParallelOrTeamsOutlinedFunction(
   CGOpenMPOutlinedRegionInfo CGInfo(*CS, ThreadIDVar, CodeGen, InnermostKind,
                                     HasCancel, OutlinedHelperName);
   CodeGenFunction::CGCapturedStmtRAII CapInfoRAII(CGF, &CGInfo);
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
   return CGF.GenerateOpenMPCapturedStmtFunction(*CS);
 }
 
@@ -1371,6 +1377,7 @@ llvm::Value *CGOpenMPRuntime::emitParallelOutlinedFunction(
     const OMPExecutableDirective &D, const VarDecl *ThreadIDVar,
     OpenMPDirectiveKind InnermostKind, const RegionCodeGenTy &CodeGen) {
   const CapturedStmt *CS = D.getCapturedStmt(OMPD_parallel);
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   return emitParallelOrTeamsOutlinedFunction(
       CGM, D, CS, ThreadIDVar, InnermostKind, getOutlinedHelperName(), CodeGen);
 }
@@ -1379,6 +1386,7 @@ llvm::Value *CGOpenMPRuntime::emitTeamsOutlinedFunction(
     const OMPExecutableDirective &D, const VarDecl *ThreadIDVar,
     OpenMPDirectiveKind InnermostKind, const RegionCodeGenTy &CodeGen) {
   const CapturedStmt *CS = D.getCapturedStmt(OMPD_teams);
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   return emitParallelOrTeamsOutlinedFunction(
       CGM, D, CS, ThreadIDVar, InnermostKind, getOutlinedHelperName(), CodeGen);
 }
@@ -6197,10 +6205,13 @@ void CGOpenMPRuntime::emitInlinedDirective(CodeGenFunction &CGF,
                                            OpenMPDirectiveKind InnerKind,
                                            const RegionCodeGenTy &CodeGen,
                                            bool HasCancel) {
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
   if (!CGF.HaveInsertPoint())
     return;
   InlinedOpenMPRegionRAII Region(CGF, CodeGen, InnerKind, HasCancel);
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
   CGF.CapturedStmtInfo->EmitBody(CGF, /*S=*/nullptr);
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
 }
 
 namespace {
@@ -8050,11 +8061,17 @@ void CGOpenMPRuntime::emitTargetCall(CodeGenFunction &CGF,
                                      llvm::Value *OutlinedFn,
                                      llvm::Value *OutlinedFnID,
                                      const Expr *IfCond, const Expr *Device) {
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
+  OutlinedFn->print(llvm::errs());
+  // OutlinedFnID->print(llvm::errs());
+  IfCond->dumpColor();
+  Device->dumpColor();
   if (!CGF.HaveInsertPoint())
     return;
 
   assert(OutlinedFn && "Invalid outlined function!");
 
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
   const bool RequiresOuterTask = D.hasClausesOfKind<OMPDependClause>();
   llvm::SmallVector<llvm::Value *, 16> CapturedVars;
   const CapturedStmt &CS = *D.getCapturedStmt(OMPD_target);
@@ -8062,7 +8079,9 @@ void CGOpenMPRuntime::emitTargetCall(CodeGenFunction &CGF,
                                             PrePostActionTy &) {
     CGF.GenerateOpenMPCapturedVars(CS, CapturedVars);
   };
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
   emitInlinedDirective(CGF, OMPD_unknown, ArgsCodegen);
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
 
   CodeGenFunction::OMPTargetDataInfo InputInfo;
   llvm::Value *MapTypesArray = nullptr;
@@ -8090,6 +8109,8 @@ void CGOpenMPRuntime::emitTargetCall(CodeGenFunction &CGF,
     } else {
       DeviceID = CGF.Builder.getInt64(OMP_DEVICEID_UNDEF);
     }
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
+    DeviceID->print(llvm::errs());
 
     // Emit the number of elements in the offloading arrays.
     llvm::Value *PointerNum =
@@ -8196,7 +8217,7 @@ void CGOpenMPRuntime::emitTargetCall(CodeGenFunction &CGF,
 
   auto &&TargetThenGen = [this, &ThenGen, &D, &InputInfo, &MapTypesArray,
                           &CapturedVars, RequiresOuterTask,
-                          &CS](CodeGenFunction &CGF, PrePostActionTy &) {
+                          &CS, &Device](CodeGenFunction &CGF, PrePostActionTy &) {
     // Fill up the arrays with all the captured variables.
     MappableExprsHandler::MapBaseValuesArrayTy BasePointers;
     MappableExprsHandler::MapValuesArrayTy Pointers;
@@ -8248,7 +8269,7 @@ void CGOpenMPRuntime::emitTargetCall(CodeGenFunction &CGF,
       assert(CurBasePointers.size() == CurPointers.size() &&
              CurBasePointers.size() == CurSizes.size() &&
              CurBasePointers.size() == CurMapTypes.size() &&
-             "Inconsistent map information sizes!");
+             "Inconsistent map infromation sizes!");
 
       // If there is an entry in PartialStruct it means we have a struct with
       // individual members mapped. Emit an extra combined entry.
@@ -8262,6 +8283,14 @@ void CGOpenMPRuntime::emitTargetCall(CodeGenFunction &CGF,
       Sizes.append(CurSizes.begin(), CurSizes.end());
       MapTypes.append(CurMapTypes.begin(), CurMapTypes.end());
     }
+
+
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << Pointers.size() << std::endl;
+    for(auto value : Pointers){
+        llvm::errs() << *value << "\n";
+    }
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
+
     // Adjust MEMBER_OF flags for the lambdas captures.
     MEHandler.adjustMemberOfForLambdaCaptures(LambdaPointers, BasePointers,
                                               Pointers, MapTypes);
@@ -8283,20 +8312,77 @@ void CGOpenMPRuntime::emitTargetCall(CodeGenFunction &CGF,
         Address(Info.PointersArray, CGM.getPointerAlign());
     InputInfo.SizesArray = Address(Info.SizesArray, CGM.getPointerAlign());
     MapTypesArray = Info.MapTypesArray;
-    if (RequiresOuterTask)
+    if (RequiresOuterTask) {
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
       CGF.EmitOMPTargetTaskBasedDirective(D, ThenGen, InputInfo);
-    else
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
+    }
+    else {
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
       emitInlinedDirective(CGF, D.getDirectiveKind(), ThenGen);
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
+    }
   };
 
-  auto &&TargetElseGen = [this, &ElseGen, &D, RequiresOuterTask](
+  auto &&TargetElseGen = [this, &ElseGen, &D, RequiresOuterTask, &Device](
                              CodeGenFunction &CGF, PrePostActionTy &) {
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
+  llvm::LLVMContext &Ctx = CGM.getLLVMContext();
+  llvm::Module &Module = CGM.getModule();
+  llvm::Constant *sicmConst = Module.getOrInsertFunction("sicm_arena_set_device", llvm::Type::getInt32Ty(Ctx), llvm::Type::getInt8PtrTy(Ctx), llvm::Type::getInt8PtrTy(Ctx));
+  llvm::Function *sicmFunc = cast <llvm::Function> (sicmConst);
+  llvm::errs() << *sicmFunc << "\n";
+
+  for (auto &F : Module) {
+      llvm::errs() << "Function: " << F.getName() << "\n";
+      if (F.getName().substr(0, 17) == "__omp_offloading_") {
+          for (auto &B : F) {
+              llvm::errs() << "    Basic Block: " << B.getName() << "\n";
+              {
+                  llvm::IRBuilder <> builder(&*B.begin());
+                  // auto *Val = llvm::ConstantInt::get(builder.getInt8PtrTy(0), 0);
+                  auto *Val = llvm::ConstantPointerNull::get(builder.getInt8PtrTy(0));
+                  llvm::Value *ValA = builder.CreateAlloca(builder.getInt8PtrTy(0), 0, Val, "a");
+                  llvm::Value *ValB = builder.CreateAlloca(builder.getInt8PtrTy(0), 0, Val, "b");
+
+                  llvm::Value *args[] = {ValA, ValB};
+
+                  builder.CreateCall(sicmFunc, args);
+                  // call sicm_init
+                  // call sicm_arena_set_device
+              }
+              {
+              // for (auto &I : B) {
+              //     if (I.isTerminator()){
+                      // llvm::IRBuilder <> builder(&*std::prev(B.end()));
+                      // auto *Val = llvm::ConstantInt::get(llvm::Type::getInt32Ty(Ctx), 456);
+                      // builder.CreateAlloca(llvm::Type::getInt32Ty(Ctx), 0, Val, "b");
+                      // builder.CreateCall(sicmFunc, {Val, Val});
+              //     }
+              // }
+              }
+          }
+
+          for (auto &B : F) {
+              for (auto &I : B) {
+                  llvm::errs() << "        Instruction: " << I << "\n";
+              }
+          }
+      }
+  }
+
     if (RequiresOuterTask) {
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
       CodeGenFunction::OMPTargetDataInfo InputInfo;
       CGF.EmitOMPTargetTaskBasedDirective(D, ElseGen, InputInfo);
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
     } else {
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
+  Device->dumpColor();
       emitInlinedDirective(CGF, D.getDirectiveKind(), ElseGen);
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
     }
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
   };
 
   // If we have a target function ID it means that we need to support
@@ -8304,15 +8390,22 @@ void CGOpenMPRuntime::emitTargetCall(CodeGenFunction &CGF,
   // regardless of the conditional in the if clause if, e.g., the user do not
   // specify target triples.
   if (OutlinedFnID) {
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
     if (IfCond) {
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
       emitOMPIfClause(CGF, IfCond, TargetThenGen, TargetElseGen);
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
     } else {
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
       RegionCodeGenTy ThenRCG(TargetThenGen);
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
       ThenRCG(CGF);
     }
   } else {
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
     RegionCodeGenTy ElseRCG(TargetElseGen);
     ElseRCG(CGF);
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << std::endl;
   }
 }
 
@@ -8363,6 +8456,7 @@ void CGOpenMPRuntime::scanForTargetRegionsFunctions(const Stmt *S,
           CGM, ParentName, cast<OMPTargetTeamsDistributeSimdDirective>(E));
       break;
     case OMPD_target_parallel_for:
+      std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
       CodeGenFunction::EmitOMPTargetParallelForDeviceFunction(
           CGM, ParentName, cast<OMPTargetParallelForDirective>(E));
       break;
@@ -9660,4 +9754,3 @@ CGOpenMPSIMDRuntime::getParameterAddress(CodeGenFunction &CGF,
                                          const VarDecl *TargetParam) const {
   llvm_unreachable("Not supported in SIMD-only mode");
 }
-

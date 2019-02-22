@@ -1091,6 +1091,7 @@ Decl *Parser::ParseFunctionDefinition(ParsingDeclarator &D,
 
   // Check to make sure that any normal attributes are allowed to be on
   // a definition.  Late parsed attributes are checked at the end.
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
   if (Tok.isNot(tok::equal)) {
     for (const ParsedAttr &AL : D.getAttributes())
       if (AL.isKnownToGCC() && !AL.isCXX11Attribute())
@@ -1098,6 +1099,7 @@ Decl *Parser::ParseFunctionDefinition(ParsingDeclarator &D,
             << AL.getName();
   }
 
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
   // In delayed template parsing mode, for function template we consume the
   // tokens and store them for late parsing at the end of the translation unit.
   if (getLangOpts().DelayedTemplateParsing && Tok.isNot(tok::equal) &&
@@ -1178,6 +1180,7 @@ Decl *Parser::ParseFunctionDefinition(ParsingDeclarator &D,
   // Break out of the ParsingDeclSpec context, too.  This const_cast is
   // safe because we're always the sole owner.
   D.getMutableDeclSpec().abort();
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
 
   if (TryConsumeToken(tok::equal)) {
     assert(getLangOpts().CPlusPlus && "Only C++ function definitions have '='");
@@ -1201,6 +1204,7 @@ Decl *Parser::ParseFunctionDefinition(ParsingDeclarator &D,
       llvm_unreachable("function definition after = not 'delete' or 'default'");
     }
 
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
     if (Tok.is(tok::comma)) {
       Diag(KWLoc, diag::err_default_delete_in_multiple_declaration)
         << Delete;
@@ -1215,6 +1219,7 @@ Decl *Parser::ParseFunctionDefinition(ParsingDeclarator &D,
     return Res;
   }
 
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
   if (SkipFunctionBodies && (!Res || Actions.canSkipFunctionBody(Res)) &&
       trySkippingFunctionBody()) {
     BodyScope.Exit();

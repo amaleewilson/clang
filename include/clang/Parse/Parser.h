@@ -29,6 +29,7 @@
 #include "llvm/Support/SaveAndRestore.h"
 #include <memory>
 #include <stack>
+#include <iostream>
 
 namespace clang {
   class PragmaHandler;
@@ -968,11 +969,13 @@ public:
     ParseScope(Parser *Self, unsigned ScopeFlags, bool EnteredScope = true,
                bool BeforeCompoundStmt = false)
       : Self(Self) {
-      if (EnteredScope && !BeforeCompoundStmt)
+        if (EnteredScope && !BeforeCompoundStmt){
         Self->EnterScope(ScopeFlags);
+        }
       else {
-        if (BeforeCompoundStmt)
+          if (BeforeCompoundStmt) {
           Self->incrementMSManglingNumber();
+          }
 
         this->Self = nullptr;
       }

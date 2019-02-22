@@ -219,7 +219,9 @@ void CodeGenFunction::EmitStmt(const Stmt *S, ArrayRef<const Attr *> Attrs) {
     EmitOMPCriticalDirective(cast<OMPCriticalDirective>(*S));
     break;
   case Stmt::OMPParallelForDirectiveClass:
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
     EmitOMPParallelForDirective(cast<OMPParallelForDirective>(*S));
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
     break;
   case Stmt::OMPParallelForSimdDirectiveClass:
     EmitOMPParallelForSimdDirective(cast<OMPParallelForSimdDirective>(*S));

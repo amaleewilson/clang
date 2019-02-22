@@ -20,6 +20,7 @@
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/iterator_range.h"
 #include <cassert>
+#include <iostream>
 
 namespace llvm {
 
@@ -210,7 +211,9 @@ private:
 public:
   Scope(Scope *Parent, unsigned ScopeFlags, DiagnosticsEngine &Diag)
       : ErrorTrap(Diag) {
+        std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
     Init(Parent, ScopeFlags);
+        std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
   }
 
   /// getFlags - Return the flags for this scope.

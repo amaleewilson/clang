@@ -20,6 +20,7 @@
 #include "clang/AST/Stmt.h"
 #include "clang/Basic/OpenMPKinds.h"
 #include "clang/Basic/SourceLocation.h"
+#include <iostream>
 
 namespace clang {
 
@@ -70,7 +71,9 @@ protected:
       : Stmt(SC), Kind(K), StartLoc(std::move(StartLoc)),
         EndLoc(std::move(EndLoc)), NumClauses(NumClauses),
         NumChildren(NumChildren),
-        ClausesOffset(llvm::alignTo(sizeof(T), alignof(OMPClause *))) {}
+        ClausesOffset(llvm::alignTo(sizeof(T), alignof(OMPClause *))) {
+          std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
+}
 
   /// Sets the list of variables for this clause.
   ///
@@ -207,19 +210,23 @@ public:
   //
   // \param RegionKind Component region kind.
   const CapturedStmt *getCapturedStmt(OpenMPDirectiveKind RegionKind) const {
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
     SmallVector<OpenMPDirectiveKind, 4> CaptureRegions;
     getOpenMPCaptureRegions(CaptureRegions, getDirectiveKind());
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
     assert(std::any_of(
                CaptureRegions.begin(), CaptureRegions.end(),
                [=](const OpenMPDirectiveKind K) { return K == RegionKind; }) &&
            "RegionKind not found in OpenMP CaptureRegions.");
     auto *CS = cast<CapturedStmt>(getAssociatedStmt());
+    llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << CaptureRegions.size() << "\n";
     for (auto ThisCaptureRegion : CaptureRegions) {
       if (ThisCaptureRegion == RegionKind)
         return CS;
       CS = cast<CapturedStmt>(CS->getCapturedStmt());
     }
     llvm_unreachable("Incorrect RegionKind specified for directive.");
+      llvm::errs() << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
   }
 
   /// Get innermost captured statement for the construct.
@@ -456,7 +463,8 @@ protected:
       : OMPExecutableDirective(That, SC, Kind, StartLoc, EndLoc, NumClauses,
                                numLoopChildren(CollapsedNum, Kind) +
                                    NumSpecialChildren),
-        CollapsedNum(CollapsedNum) {}
+        CollapsedNum(CollapsedNum) {        std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
+}
 
   /// Offset to the start of children expression arrays.
   static unsigned getArraysOffset(OpenMPDirectiveKind Kind) {
@@ -1566,7 +1574,9 @@ class OMPParallelForDirective : public OMPLoopDirective {
                           unsigned CollapsedNum, unsigned NumClauses)
       : OMPLoopDirective(this, OMPParallelForDirectiveClass, OMPD_parallel_for,
                          StartLoc, EndLoc, CollapsedNum, NumClauses),
-        HasCancel(false) {}
+        HasCancel(false) {
+      std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
+  }
 
   /// Build an empty directive.
   ///
@@ -1577,7 +1587,9 @@ class OMPParallelForDirective : public OMPLoopDirective {
       : OMPLoopDirective(this, OMPParallelForDirectiveClass, OMPD_parallel_for,
                          SourceLocation(), SourceLocation(), CollapsedNum,
                          NumClauses),
-        HasCancel(false) {}
+        HasCancel(false) {
+      std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
+  }
 
   /// Set cancel state.
   void setHasCancel(bool Has) { HasCancel = Has; }

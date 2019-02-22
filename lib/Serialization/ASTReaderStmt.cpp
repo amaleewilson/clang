@@ -59,6 +59,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
+#include <iostream>
 #include <string>
 
 using namespace clang;
@@ -1942,11 +1943,13 @@ void ASTStmtReader::VisitOMPLoopDirective(OMPLoopDirective *D) {
 }
 
 void ASTStmtReader::VisitOMPParallelDirective(OMPParallelDirective *D) {
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
   VisitStmt(D);
   // The NumClauses field was read in ReadStmtFromStream.
   Record.skipInts(1);
   VisitOMPExecutableDirective(D);
   D->setHasCancel(Record.readInt());
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
 }
 
 void ASTStmtReader::VisitOMPSimdDirective(OMPSimdDirective *D) {
@@ -1997,8 +2000,10 @@ void ASTStmtReader::VisitOMPCriticalDirective(OMPCriticalDirective *D) {
 }
 
 void ASTStmtReader::VisitOMPParallelForDirective(OMPParallelForDirective *D) {
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
   VisitOMPLoopDirective(D);
   D->setHasCancel(Record.readInt());
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
 }
 
 void ASTStmtReader::VisitOMPParallelForSimdDirective(
@@ -2782,10 +2787,12 @@ Stmt *ASTReader::ReadStmtFromStream(ModuleFile &F) {
       break;
 
     case STMT_OMP_PARALLEL_DIRECTIVE:
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
       S =
         OMPParallelDirective::CreateEmpty(Context,
                                           Record[ASTStmtReader::NumStmtFields],
                                           Empty);
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
       break;
 
     case STMT_OMP_SIMD_DIRECTIVE: {
@@ -2836,10 +2843,12 @@ Stmt *ASTReader::ReadStmtFromStream(ModuleFile &F) {
       break;
 
     case STMT_OMP_PARALLEL_FOR_DIRECTIVE: {
+      std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
       unsigned NumClauses = Record[ASTStmtReader::NumStmtFields];
       unsigned CollapsedNum = Record[ASTStmtReader::NumStmtFields + 1];
       S = OMPParallelForDirective::CreateEmpty(Context, NumClauses,
                                                CollapsedNum, Empty);
+      std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << "\n";
       break;
     }
 

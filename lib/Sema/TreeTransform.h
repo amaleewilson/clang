@@ -1483,6 +1483,7 @@ public:
                                            ArrayRef<OMPClause *> Clauses,
                                            Stmt *AStmt, SourceLocation StartLoc,
                                            SourceLocation EndLoc) {
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
     return getSema().ActOnOpenMPExecutableDirective(
         Kind, DirName, CancelRegion, Clauses, AStmt, StartLoc, EndLoc);
   }

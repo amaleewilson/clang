@@ -18,6 +18,7 @@
 #include "clang/Parse/RAIIObjectsForParser.h"
 #include "clang/Sema/Scope.h"
 #include "llvm/ADT/PointerIntPair.h"
+#include <iostream>
 
 using namespace clang;
 
@@ -751,7 +752,7 @@ Parser::DeclGroupPtrTy Parser::ParseOpenMPDeclarativeDirectiveWithExtDecl(
     SmallVector<llvm::PointerIntPair<OMPClause *, 1, bool>, OMPC_unknown + 1>
     FirstClauses(OMPC_unknown + 1);
     if (Tok.is(tok::annot_pragma_openmp_end)) {
-      Diag(Tok, diag::err_omp_expected_clause) 
+      Diag(Tok, diag::err_omp_expected_clause)
           << getOpenMPDirectiveName(OMPD_requires);
       break;
     }
@@ -979,13 +980,16 @@ Parser::DeclGroupPtrTy Parser::ParseOpenMPDeclarativeDirectiveWithExtDecl(
 StmtResult Parser::ParseOpenMPDeclarativeOrExecutableDirective(
     AllowedConstructsKind Allowed) {
   assert(Tok.is(tok::annot_pragma_openmp) && "Not an OpenMP directive!");
+      std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << Tok.getName() << std::endl;
   ParenBraceBracketBalancer BalancerRAIIObj(*this);
   SmallVector<OMPClause *, 5> Clauses;
   SmallVector<llvm::PointerIntPair<OMPClause *, 1, bool>, OMPC_unknown + 1>
   FirstClauses(OMPC_unknown + 1);
   unsigned ScopeFlags = Scope::FnScope | Scope::DeclScope |
                         Scope::CompoundStmtScope | Scope::OpenMPDirectiveScope;
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << Tok.getName() << std::endl;
   SourceLocation Loc = ConsumeAnnotationToken(), EndLoc;
+      std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << Tok.getName() << std::endl;
   OpenMPDirectiveKind DKind = parseOpenMPDirectiveKind(*this);
   OpenMPDirectiveKind CancelRegion = OMPD_unknown;
   // Name of critical directive.
@@ -993,6 +997,7 @@ StmtResult Parser::ParseOpenMPDeclarativeOrExecutableDirective(
   StmtResult Directive = StmtError();
   bool HasAssociatedStatement = true;
   bool FlushHasClause = false;
+      std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << Tok.getName() << std::endl;
 
   switch (DKind) {
   case OMPD_threadprivate: {
@@ -1096,9 +1101,12 @@ StmtResult Parser::ParseOpenMPDeclarativeOrExecutableDirective(
   case OMPD_target_teams_distribute_parallel_for:
   case OMPD_target_teams_distribute_parallel_for_simd:
   case OMPD_target_teams_distribute_simd: {
+      std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << Tok.getName() << std::endl;
     ConsumeToken();
+      std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << Tok.getName() << std::endl;
     // Parse directive name of the 'critical' directive if any.
     if (DKind == OMPD_critical) {
+        std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << Tok.getName() << " " << Tok.getLocation().printToString(PP.getSourceManager()) << std::endl;
       BalancedDelimiterTracker T(*this, tok::l_paren,
                                  tok::annot_pragma_openmp_end);
       if (!T.consumeOpen()) {
@@ -1106,30 +1114,39 @@ StmtResult Parser::ParseOpenMPDeclarativeOrExecutableDirective(
           DirName =
               DeclarationNameInfo(Tok.getIdentifierInfo(), Tok.getLocation());
           ConsumeAnyToken();
+          std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << DirName.getAsString() << " " << Tok.getName() <<  std::endl;
         } else {
           Diag(Tok, diag::err_omp_expected_identifier_for_critical);
         }
         T.consumeClose();
       }
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
     } else if (DKind == OMPD_cancellation_point || DKind == OMPD_cancel) {
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
       CancelRegion = parseOpenMPDirectiveKind(*this);
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
       if (Tok.isNot(tok::annot_pragma_openmp_end))
         ConsumeToken();
     }
 
-    if (isOpenMPLoopDirective(DKind))
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
+  if (isOpenMPLoopDirective(DKind)) {
+  std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
       ScopeFlags |= Scope::OpenMPLoopDirectiveScope;
+  }
     if (isOpenMPSimdDirective(DKind))
       ScopeFlags |= Scope::OpenMPSimdDirectiveScope;
     ParseScope OMPDirectiveScope(this, ScopeFlags);
     Actions.StartOpenMPDSABlock(DKind, DirName, Actions.getCurScope(), Loc);
 
     while (Tok.isNot(tok::annot_pragma_openmp_end)) {
+      std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << Tok.getName() << std::endl;
       OpenMPClauseKind CKind =
           Tok.isAnnotation()
               ? OMPC_unknown
               : FlushHasClause ? OMPC_flush
                                : getOpenMPClauseKind(PP.getSpelling(Tok));
+      std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << Tok.getName() << std::endl;
       Actions.StartOpenMPClause(CKind);
       FlushHasClause = false;
       OMPClause *Clause =
@@ -1145,10 +1162,13 @@ StmtResult Parser::ParseOpenMPDeclarativeOrExecutableDirective(
         ConsumeToken();
       Actions.EndOpenMPClause();
     }
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << Tok.getName() << std::endl;
     // End location of the directive.
     EndLoc = Tok.getLocation();
     // Consume final annot_pragma_openmp_end.
     ConsumeAnnotationToken();
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << getOpenMPDirectiveName(DKind) << " "
+              << getOpenMPClauseName(OMPC_depend) << std::endl;
 
     // OpenMP [2.13.8, ordered Construct, Syntax]
     // If the depend clause is specified, the ordered construct is a stand-alone
@@ -1162,15 +1182,20 @@ StmtResult Parser::ParseOpenMPDeclarativeOrExecutableDirective(
       HasAssociatedStatement = false;
     }
 
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << HasAssociatedStatement << std::endl;
     StmtResult AssociatedStmt;
     if (HasAssociatedStatement) {
       // The body is a block scope like in Lambdas and Blocks.
+    std::cout << "OpenMP Region Start " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
       Actions.ActOnOpenMPRegionStart(DKind, getCurScope());
+    std::cout << "OpenMP Region Start" << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
       // FIXME: We create a bogus CompoundStmt scope to hold the contents of
       // the captured region. Code elsewhere assumes that any FunctionScopeInfo
       // should have at least one compound statement scope within it.
       AssociatedStmt = (Sema::CompoundScopeRAII(Actions), ParseStatement());
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
       AssociatedStmt = Actions.ActOnOpenMPRegionEnd(AssociatedStmt, Clauses);
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
     } else if (DKind == OMPD_target_update || DKind == OMPD_target_enter_data ||
                DKind == OMPD_target_exit_data) {
       Actions.ActOnOpenMPRegionStart(DKind, getCurScope());
@@ -1179,13 +1204,16 @@ StmtResult Parser::ParseOpenMPDeclarativeOrExecutableDirective(
                                                   /*isStmtExpr=*/false));
       AssociatedStmt = Actions.ActOnOpenMPRegionEnd(AssociatedStmt, Clauses);
     }
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
     Directive = Actions.ActOnOpenMPExecutableDirective(
         DKind, DirName, CancelRegion, Clauses, AssociatedStmt.get(), Loc,
         EndLoc);
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
 
     // Exit scope.
     Actions.EndOpenMPDSABlock(Directive.get());
     OMPDirectiveScope.Exit();
+    std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << std::endl;
     break;
   }
   case OMPD_declare_simd:
@@ -1285,6 +1313,7 @@ bool Parser::ParseOpenMPSimpleVarList(
 ///
 OMPClause *Parser::ParseOpenMPClause(OpenMPDirectiveKind DKind,
                                      OpenMPClauseKind CKind, bool FirstClause) {
+      std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << Tok.getName() << std::endl;
   OMPClause *Clause = nullptr;
   bool ErrorFound = false;
   bool WrongDirective = false;
@@ -1424,21 +1453,28 @@ OMPClause *Parser::ParseOpenMPClause(OpenMPDirectiveKind DKind,
   case OMPC_from:
   case OMPC_use_device_ptr:
   case OMPC_is_device_ptr:
+      std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << Tok.getName() << std::endl;
     Clause = ParseOpenMPVarListClause(DKind, CKind, WrongDirective);
+      std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << Tok.getName() << std::endl;
     break;
   case OMPC_unknown:
+      std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << Tok.getName() << std::endl;
     Diag(Tok, diag::warn_omp_extra_tokens_at_eol)
         << getOpenMPDirectiveName(DKind);
     SkipUntil(tok::annot_pragma_openmp_end, StopBeforeMatch);
+      std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << Tok.getName() << std::endl;
     break;
   case OMPC_threadprivate:
   case OMPC_uniform:
+      std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << Tok.getName() << std::endl;
     if (!WrongDirective)
       Diag(Tok, diag::err_omp_unexpected_clause)
           << getOpenMPClauseName(CKind) << getOpenMPDirectiveName(DKind);
     SkipUntil(tok::comma, tok::annot_pragma_openmp_end, StopBeforeMatch);
+      std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << Tok.getName() << std::endl;
     break;
   }
+      std::cout << "OpenMP " << __FILE__ <<":" << __LINE__ << " " << __func__ << " " << Tok.getName() << std::endl;
   return ErrorFound ? nullptr : Clause;
 }
 
@@ -2059,4 +2095,3 @@ OMPClause *Parser::ParseOpenMPVarListClause(OpenMPDirectiveKind DKind,
       Data.MapTypeModifier, Data.MapType, Data.IsMapTypeImplicit,
       Data.DepLinMapLoc);
 }
-

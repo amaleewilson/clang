@@ -1048,6 +1048,9 @@ public:
     if (getStorageClass() == SC_Register && !isLocalVarDeclOrParm())
       return false;
 
+    if (getStorageClass() == SC_Virtual)
+      return false;
+
     // Return true for:  Auto, Register.
     // Return false for: Extern, Static, PrivateExtern, OpenCLWorkGroupLocal.
 
@@ -1079,7 +1082,8 @@ public:
   /// Get the storage duration of this variable, per C++ [basic.stc].
   StorageDuration getStorageDuration() const {
     return hasLocalStorage() ? SD_Automatic :
-           getTSCSpec() ? SD_Thread : SD_Static;
+           getTSCSpec() ? SD_Thread : 
+	   getStorageClass() != SC_Virtual?SD_Static:SD_Virtual;
   }
 
   /// Compute the language linkage.

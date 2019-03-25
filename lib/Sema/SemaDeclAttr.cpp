@@ -6082,7 +6082,9 @@ static void handleDestroyAttr(Sema &S, Decl *D, const ParsedAttr &A) {
 
 static void handleDreplAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
   // TODO
-  printf("handleDreplAttr\n");
+  printf("handleDreplAttr \n");
+  auto vd = cast<VarDecl>(D);
+  vd->setStorageClass(SC_Virtual);
 }
 
 //===----------------------------------------------------------------------===//

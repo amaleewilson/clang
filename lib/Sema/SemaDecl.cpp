@@ -6465,6 +6465,13 @@ NamedDecl *Sema::ActOnVariableDeclarator(
         break;
       case SC_PrivateExtern:
         llvm_unreachable("C storage class in c++!");
+        break;
+      case SC_Virtual:
+        Diag(D.getDeclSpec().getStorageClassSpecLoc(),
+             diag::err_storage_class_for_virtual_var)
+          << FixItHint::CreateRemoval(D.getDeclSpec().getStorageClassSpecLoc());
+        break;
+	
       }
     }
 
@@ -6754,6 +6761,7 @@ NamedDecl *Sema::ActOnVariableDeclarator(
       case SC_Static:
       case SC_Extern:
       case SC_PrivateExtern:
+      case SC_Virtual:
         break;
       }
     } else if (SC == SC_Register) {
@@ -11691,6 +11699,9 @@ void Sema::ActOnCXXForRangeDecl(Decl *D) {
     break;
   case SC_Register:
     Error = 4;
+    break;
+  case SC_Virtual:
+    Error = 5;
     break;
   }
   if (Error != -1) {

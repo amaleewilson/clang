@@ -212,7 +212,8 @@ namespace clang {
 
     // These are only legal on variables.
     SC_Auto,
-    SC_Register
+    SC_Register,
+    SC_Virtual,
   };
 
   /// Checks whether the given storage class is legal for functions.
@@ -279,7 +280,8 @@ namespace clang {
     SD_Automatic,      ///< Automatic storage duration (most local variables).
     SD_Thread,         ///< Thread storage duration.
     SD_Static,         ///< Static storage duration.
-    SD_Dynamic         ///< Dynamic storage duration.
+    SD_Dynamic,        ///< Dynamic storage duration.
+    SD_Virtual,	       ///< Virtual storage
   };
 
   /// Describes the nullability of a particular type.
